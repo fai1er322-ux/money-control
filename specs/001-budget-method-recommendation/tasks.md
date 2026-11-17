@@ -27,7 +27,7 @@ description: "Task list for 001-budget-method-recommendation"
 
 **Purpose**: инициализация проекта и инструментов
 
-- [ ] T001 Создать Vite-проект React 19 + TypeScript в корне репозитория: `package.json` (name `money-control`, `"type": "module"`, Node 22), `index.html` с подключением `https://telegram.org/js/telegram-web-app.js` до бандла, `src/main.tsx`, `src/app.tsx`, `vite.config.ts`
+- [ ] T001 Создать Vite-проект React 19 + TypeScript в корне репозитория: `package.json` (name `money-control`, `"type": "module"`, `engines.node` ≥ 22), `index.html` с подключением `https://telegram.org/js/telegram-web-app.js` до бандла, `src/main.tsx`, `src/app.tsx`, `vite.config.ts`
 - [ ] T002 Настроить TypeScript strict в `tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, target ES2022) и добавить скрипт `typecheck` (`tsc --noEmit`) в `package.json`
 - [ ] T003 [P] Настроить ESLint (flat config) и Prettier в `eslint.config.js` и `.prettierrc`; правило `no-console` = error для `src/domain/**` и `src/storage/**` (принцип II: никаких сумм в логах); скрипт `lint`
 - [ ] T004 [P] Настроить Vitest + jsdom + Testing Library в `vitest.config.ts` и `tests/setup.ts`; скрипт `test`

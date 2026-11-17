@@ -1,0 +1,14 @@
+# Локальные настройки и данные агентов (могут содержать токены)
+.claude/settings.local.json
+.claude/*.local.*
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Секреты окружения
+.env
+.env.*
+!.env.example

@@ -206,3 +206,91 @@ h2 {
 .steps-list li {
   margin-bottom: 8px;
 }
+
+.method-list,
+.part-list,
+.warning-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.method-card {
+  padding: 4px 14px 14px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: var(--secondary-bg);
+}
+
+.badge {
+  display: inline-block;
+  margin: 0 6px 0 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--button);
+  color: var(--button-text);
+}
+
+.part-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--secondary-bg);
+}
+
+.part-row > span:first-child {
+  flex: 1 1 140px;
+}
+
+.part-row.editing {
+  display: block;
+}
+
+.part-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.link-button {
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--link);
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.plan-total {
+  font-weight: 600;
+  text-align: right;
+}
+
+.warning-list li {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--secondary-bg);
+  border-left: 4px solid var(--destructive);
+}
+
+.weeks-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.weeks-table th,
+.weeks-table td {
+  padding: 8px 4px;
+  text-align: left;
+  border-bottom: 1px solid var(--secondary-bg);
+}
+
+.weeks-table td.part-amount {
+  text-align: right;
+}

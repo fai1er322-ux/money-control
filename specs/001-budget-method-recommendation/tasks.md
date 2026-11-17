@@ -115,22 +115,22 @@ contracts/scoring-rules-v1.md до копейки; Σ частей = доход
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T038 [P] [US2] Тесты планов в `tests/unit/plans.spec.ts`: E1 (60 000 / 36 000 / 24 000), E2 (`base_plus_buffer`: obligations 30 000, savings 4 000, flexible 6 000, bufferTarget 90 000), E6 (округление → savings 2 000 021); для всех шести методов и набора случайных профилей — «Σ parts.amount === income.amount»; `SAVINGS_BELOW_MIN`, `OBLIGATIONS_EXCEED_NEEDS`
-- [ ] T039 [P] [US2] Тесты недельных лимитов в `tests/unit/weekly-limits.spec.ts`: E5 (декабрь 2026: 774 193; 903 225 × 3; 516 132 коп.), месяц, начинающийся с понедельника, февраль невисокосного года; «Σ limit.amount === flexible.amount»
-- [ ] T040 [P] [US2] Тесты `adjustPart` и `decide` в `tests/unit/adjust-decide.spec.ts`: перераспределение по частям без `isManual` и `isFixed` пропорционально; `MANUAL_PARTS_EXCEED_INCOME`; `PART_IS_FIXED`; переходы `pending → accepted`, `pending → overridden`, `accepted → overridden`; итоговые состояния не возвращаются в `pending`
-- [ ] T041 [P] [US2] E2E сценарии US2.1–US2.4 из spec.md в `tests/e2e/us2-plan.spec.ts`
+- [X] T038 [P] [US2] Тесты планов в `tests/unit/plans.spec.ts`: E1 (60 000 / 36 000 / 24 000), E2 (`base_plus_buffer`: obligations 30 000, savings 4 000, flexible 6 000, bufferTarget 90 000), E6 (округление → savings 2 000 021); для всех шести методов и набора случайных профилей — «Σ parts.amount === income.amount»; `SAVINGS_BELOW_MIN`, `OBLIGATIONS_EXCEED_NEEDS`
+- [X] T039 [P] [US2] Тесты недельных лимитов в `tests/unit/weekly-limits.spec.ts`: E5 (декабрь 2026: 774 193; 903 225 × 3; 516 132 коп.), месяц, начинающийся с понедельника, февраль невисокосного года; «Σ limit.amount === flexible.amount»
+- [X] T040 [P] [US2] Тесты `adjustPart` и `decide` в `tests/unit/adjust-decide.spec.ts`: перераспределение по частям без `isManual` и `isFixed` пропорционально; `MANUAL_PARTS_EXCEED_INCOME`; `PART_IS_FIXED`; переходы `pending → accepted`, `pending → overridden`, `accepted → overridden`; итоговые состояния не возвращаются в `pending`
+- [X] T041 [P] [US2] E2E сценарии US2.1–US2.4 из spec.md в `tests/e2e/us2-plan.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T042 [P] [US2] Построители частей плана для `rule_50_30_20`, `rule_70_20_10`, `pay_yourself_first` в `src/domain/methods/percent-methods.ts`
-- [ ] T043 [P] [US2] Построители для `weekly_limits`, `envelopes`, `base_plus_buffer` (с `surplusRule`: «5000 б.п. в буферный фонд, 3000 — в накопления, 2000 — свободно», `bufferTarget = 3 × obligations`) в `src/domain/methods/obligation-methods.ts`
-- [ ] T044 [P] [US2] `splitByWeeks(flexible, period)` в `src/domain/methods/weekly.ts`: недели с понедельника, обрезка границами месяца, остаток — в последнюю неделю
-- [ ] T045 [US2] `buildPlan` в `src/domain/methods/build-plan.ts`: выбор построителя, остаток округления в `savings`, предупреждения (зависит от T042–T044; T038, T039 должны пройти)
-- [ ] T046 [US2] `adjustPart` в `src/domain/methods/adjust.ts` и `decide` в `src/domain/history.ts` (T040 должен пройти)
-- [ ] T047 [P] [US2] Строки экрана плана, частей бюджета, предупреждений и каталога методов в `src/ui/i18n/ru.ts`
-- [ ] T048 [US2] Кнопки «Принять» и «Выбрать другой метод» (каталог с описаниями) на `src/ui/screens/Recommendation.tsx` и экран выбора `src/ui/screens/MethodCatalog.tsx`
-- [ ] T049 [US2] Экран плана в `src/ui/screens/Plan.tsx`: части с суммами, недельные лимиты, правило дохода сверх базы, ручная правка суммы с предупреждениями; отображение ≤ 1 с после выбора метода (SC-006) (зависит от T045, T046)
-- [ ] T050 [US2] Подключить решение и план в `src/app.tsx`: сохранение `decision`, `chosenMethodId`, `BudgetPlan`, `activePlanId`; при наличии активного плана приложение открывается на экране плана
+- [X] T042 [P] [US2] Построители частей плана для `rule_50_30_20`, `rule_70_20_10`, `pay_yourself_first` в `src/domain/methods/percent-methods.ts`
+- [X] T043 [P] [US2] Построители для `weekly_limits`, `envelopes`, `base_plus_buffer` (с `surplusRule`: «5000 б.п. в буферный фонд, 3000 — в накопления, 2000 — свободно», `bufferTarget = 3 × obligations`) в `src/domain/methods/obligation-methods.ts`
+- [X] T044 [P] [US2] `splitByWeeks(flexible, period)` в `src/domain/methods/weekly.ts`: недели с понедельника, обрезка границами месяца, остаток — в последнюю неделю
+- [X] T045 [US2] `buildPlan` в `src/domain/methods/build-plan.ts`: выбор построителя, остаток округления в `savings`, предупреждения (зависит от T042–T044; T038, T039 должны пройти)
+- [X] T046 [US2] `adjustPart` в `src/domain/methods/adjust.ts` и `decide` в `src/domain/history.ts` (T040 должен пройти)
+- [X] T047 [P] [US2] Строки экрана плана, частей бюджета, предупреждений и каталога методов в `src/ui/i18n/ru.ts`
+- [X] T048 [US2] Кнопки «Принять» и «Выбрать другой метод» (каталог с описаниями) на `src/ui/screens/Recommendation.tsx` и экран выбора `src/ui/screens/MethodCatalog.tsx`
+- [X] T049 [US2] Экран плана в `src/ui/screens/Plan.tsx`: части с суммами, недельные лимиты, правило дохода сверх базы, ручная правка суммы с предупреждениями; отображение ≤ 1 с после выбора метода (SC-006) (зависит от T045, T046)
+- [X] T050 [US2] Подключить решение и план в `src/app.tsx`: сохранение `decision`, `chosenMethodId`, `BudgetPlan`, `activePlanId`; при наличии активного плана приложение открывается на экране плана
 
 **Checkpoint**: US1 и US2 работают каждая отдельно
 

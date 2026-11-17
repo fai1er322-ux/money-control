@@ -4,6 +4,7 @@ import { Disclaimer } from "../components/Disclaimer";
 import { StepLayout } from "../components/StepLayout";
 import { displayParams, formatMoney } from "../i18n/format";
 import { t, type MessageKey } from "../i18n/ru";
+import { BottomActions } from "../telegram";
 
 const methodTitle = (id: MethodId) => t(`method.${id}.title`);
 const methodDescription = (id: MethodId) => t(`method.${id}.description`);
@@ -12,9 +13,17 @@ const methodDescription = (id: MethodId) => t(`method.${id}.description`);
 export function Recommendation({
   recommendation: rec,
   onEditAnswers,
+  onAccept,
+  onChooseOther,
+  onOpenPlan,
 }: {
   recommendation: RecommendationModel;
   onEditAnswers: () => void;
+  /** FR-013: accept the recommended method and build the plan. */
+  onAccept: () => void;
+  onChooseOther: () => void;
+  /** Present when a plan for this recommendation already exists. */
+  onOpenPlan?: (() => void) | undefined;
 }) {
   const editButton = (
     <button type="button" className="secondary" onClick={onEditAnswers}>
@@ -39,9 +48,22 @@ export function Recommendation({
 
   const recommended = rec.recommendedMethodId;
   const alternative = rec.alternativeMethodId;
+  const primary =
+    rec.decision === "pending" || !onOpenPlan
+      ? { label: t("rec.accept"), onClick: onAccept }
+      : { label: t("rec.openPlan"), onClick: onOpenPlan };
+  const footer = (
+    <>
+      <BottomActions primary={primary} />
+      <button type="button" className="secondary" onClick={onChooseOther}>
+        {t("rec.chooseOther")}
+      </button>
+      {editButton}
+    </>
+  );
 
   return (
-    <StepLayout title={t("rec.title", { method: methodTitle(recommended) })} footer={editButton}>
+    <StepLayout title={t("rec.title", { method: methodTitle(recommended) })} footer={footer}>
       <p>{methodDescription(recommended)}</p>
       <p className="field-hint">{t("rec.score", { score: rec.scores[recommended] ?? 0 })}</p>
 

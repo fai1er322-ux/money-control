@@ -98,7 +98,9 @@ Edge case «очень нестабильный доход» (spec): при `inc
 
 **Переходы состояния `decision`**: `pending → accepted` (принял) или `pending → overridden`
 (выбрал другой метод). Из `accepted` возможен переход в `overridden`, если пользователь позже
-сменил метод. Итоговые состояния не откатываются в `pending`.
+сменил метод; из `overridden` — снова в `overridden` (другой метод). Итоговые состояния не
+откатываются ни в `pending`, ни в `accepted`. Выбор рекомендованного метода из каталога при
+`pending` считается принятием.
 
 ## BudgetPlan
 
@@ -109,6 +111,7 @@ Edge case «очень нестабильный доход» (spec): при `inc
 | `methodId` | MethodId | |
 | `period` | `{ year, month }` | Календарный месяц |
 | `income` | Money | = `metrics.baseIncome` |
+| `obligations` | Money | = `metrics.obligations`; нужен, чтобы пересчитать предупреждения после ручной правки |
 | `parts` | список `PlanPart` | Σ `amount` = `income` ровно (FR-015) |
 | `weeklyLimits` | список `{ weekIndex, from, to, days, limit: Money }` \| null | Только для методов с недельными лимитами |
 | `surplusRule` | `{ bufferBp, savingsBp, freeBp, bufferTarget: Money }` \| null | Только для `base_plus_buffer` (FR-017) |

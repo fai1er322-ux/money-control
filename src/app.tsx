@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import { decide, type DecisionChoice } from "./domain/history";
+import { adjustPart } from "./domain/methods/adjust";
+import { buildPlan } from "./domain/methods/build-plan";
+import type { MethodId } from "./domain/methods/catalog";
+import type { Period } from "./domain/plan";
 import { createProfile, profileToAnswers, type DraftAnswers } from "./domain/profile";
 import { recommend } from "./domain/scoring/engine";
 import { SCORING_RULES_V1 } from "./domain/scoring/rules-v1";
@@ -6,6 +11,8 @@ import { emptyAppState, type AppState } from "./storage/app-state";
 import { createRepository, type LoadError, type StateRepository } from "./storage/repository";
 import type { TelegramWebApp } from "./telegram/webapp";
 import { t } from "./ui/i18n/ru";
+import { MethodCatalog } from "./ui/screens/MethodCatalog";
+import { Plan } from "./ui/screens/Plan";
 import { Questionnaire } from "./ui/screens/Questionnaire";
 import { Recommendation } from "./ui/screens/Recommendation";
 import { StorageError } from "./ui/screens/StorageError";
@@ -79,15 +86,51 @@ export function App({ webApp, createRepo = createRepository }: AppProps) {
 
 const now = () => new Date().toISOString();
 const newId = () => crypto.randomUUID();
+/** The plan covers the current calendar month on this device. */
+const currentPeriod = (): Period => {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() + 1 };
+};
+
+type View = "auto" | "catalog" | "recommendation";
 
 /**
  * Screen router. The screen is derived from the stored state, so a reload resumes where the
- * user left off: notice → questionnaire (while a draft exists) → latest recommendation.
+ * user left off: notice → questionnaire (while a draft exists) → the active plan of the latest
+ * recommendation, or the recommendation itself.
  */
 function AppShell() {
   const { state, storageMode, saveError, update } = useAppState();
   const latest = state.recommendations.at(-1) ?? null;
   const latestProfile = state.profiles.at(-1) ?? null;
+  const [view, setView] = useState<View>("auto");
+  const activePlan = state.plans.find((p) => p.id === state.activePlanId) ?? null;
+  const plan =
+    activePlan && latest && activePlan.recommendationId === latest.id ? activePlan : null;
+
+  function choose(rec: NonNullable<typeof latest>, choice: DecisionChoice) {
+    const methodId = choice.kind === "accept" ? rec.recommendedMethodId : choice.methodId;
+    const profile = state.profiles.find((p) => p.id === rec.profileId);
+    if (!methodId || !profile) return;
+    if (plan && methodId === plan.methodId) {
+      setView("auto");
+      return;
+    }
+    const at = now();
+    const decided = decide(rec, choice, at);
+    const next = buildPlan(profile, methodId, currentPeriod(), {
+      now: at,
+      newId,
+      recommendationId: rec.id,
+    });
+    update((s) => ({
+      ...s,
+      recommendations: s.recommendations.map((r) => (r.id === rec.id ? decided : r)),
+      plans: [...s.plans, next],
+      activePlanId: next.id,
+    }));
+    setView("auto");
+  }
 
   const saveDraft = (answers: DraftAnswers, step: 1 | 2 | 3 | 4) =>
     update((s) => ({ ...s, draft: { ...answers, step, updatedAt: now() } }));
@@ -127,11 +170,46 @@ function AppShell() {
         }}
       />
     );
+  } else if (view === "catalog" && latest.recommendedMethodId) {
+    screen = (
+      <MethodCatalog
+        recommendedMethodId={latest.recommendedMethodId}
+        currentMethodId={plan?.methodId ?? null}
+        onChoose={(methodId: MethodId) => choose(latest, { kind: "override", methodId })}
+        onBack={() => setView("auto")}
+      />
+    );
+  } else if (plan && view !== "recommendation") {
+    screen = (
+      <Plan
+        plan={plan}
+        recommendedMethodId={latest.recommendedMethodId}
+        overridden={latest.decision === "overridden"}
+        onChangeMethod={() => setView("catalog")}
+        onShowRecommendation={() => setView("recommendation")}
+        onAdjust={(key, amount) => {
+          const res = adjustPart(plan, key, amount, now());
+          if (res.ok) {
+            update((s) => ({
+              ...s,
+              plans: s.plans.map((p) => (p.id === plan.id ? res.value : p)),
+            }));
+          }
+          return res;
+        }}
+      />
+    );
   } else {
     screen = (
       <Recommendation
         recommendation={latest}
-        onEditAnswers={() => saveDraft(latestProfile ? profileToAnswers(latestProfile) : {}, 1)}
+        onEditAnswers={() => {
+          setView("auto");
+          saveDraft(latestProfile ? profileToAnswers(latestProfile) : {}, 1);
+        }}
+        onAccept={() => choose(latest, { kind: "accept" })}
+        onChooseOther={() => setView("catalog")}
+        onOpenPlan={plan ? () => setView("auto") : undefined}
       />
     );
   }

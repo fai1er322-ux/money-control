@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
+import { createProfile, profileToAnswers, type DraftAnswers } from "./domain/profile";
+import { recommend } from "./domain/scoring/engine";
+import { SCORING_RULES_V1 } from "./domain/scoring/rules-v1";
 import { emptyAppState, type AppState } from "./storage/app-state";
 import { createRepository, type LoadError, type StateRepository } from "./storage/repository";
 import type { TelegramWebApp } from "./telegram/webapp";
-import { StepLayout } from "./ui/components/StepLayout";
 import { t } from "./ui/i18n/ru";
+import { Questionnaire } from "./ui/screens/Questionnaire";
+import { Recommendation } from "./ui/screens/Recommendation";
 import { StorageError } from "./ui/screens/StorageError";
+import { Welcome } from "./ui/screens/Welcome";
 import { AppStateProvider, useAppState } from "./ui/state";
+import { TelegramProvider } from "./ui/telegram";
 
 type Boot =
   | { status: "loading" }
@@ -63,18 +69,72 @@ export function App({ webApp, createRepo = createRepository }: AppProps) {
   }
 
   return (
-    <AppStateProvider repository={boot.repository} initial={boot.state}>
-      <AppShell />
-    </AppStateProvider>
+    <TelegramProvider value={webApp}>
+      <AppStateProvider repository={boot.repository} initial={boot.state}>
+        <AppShell />
+      </AppStateProvider>
+    </TelegramProvider>
   );
 }
 
-/** Screen router. US1–US3 add screens here (Welcome, Questionnaire, Recommendation, …). */
-type ScreenName = "home";
+const now = () => new Date().toISOString();
+const newId = () => crypto.randomUUID();
 
+/**
+ * Screen router. The screen is derived from the stored state, so a reload resumes where the
+ * user left off: notice → questionnaire (while a draft exists) → latest recommendation.
+ */
 function AppShell() {
-  const { storageMode, saveError } = useAppState();
-  const [screen] = useState<ScreenName>("home");
+  const { state, storageMode, saveError, update } = useAppState();
+  const latest = state.recommendations.at(-1) ?? null;
+  const latestProfile = state.profiles.at(-1) ?? null;
+
+  const saveDraft = (answers: DraftAnswers, step: 1 | 2 | 3 | 4) =>
+    update((s) => ({ ...s, draft: { ...answers, step, updatedAt: now() } }));
+
+  let screen;
+  if (!state.localStorageNoticeAcknowledgedAt) {
+    screen = (
+      <Welcome
+        storageMode={storageMode}
+        onStart={() =>
+          update((s) => ({
+            ...s,
+            localStorageNoticeAcknowledgedAt: now(),
+            draft: s.draft ?? { step: 1, updatedAt: now() },
+          }))
+        }
+      />
+    );
+  } else if (state.draft || !latest) {
+    const { step = 1, updatedAt: _updatedAt, ...answers } = state.draft ?? {};
+    screen = (
+      <Questionnaire
+        initialAnswers={answers}
+        initialStep={step}
+        onDraftChange={saveDraft}
+        onCancel={latest ? () => update((s) => ({ ...s, draft: null })) : undefined}
+        onComplete={(input) => {
+          const ctx = { now: now(), newId };
+          const profile = createProfile(input, ctx);
+          const recommendation = recommend(profile, SCORING_RULES_V1, ctx);
+          update((s) => ({
+            ...s,
+            profiles: [...s.profiles, profile],
+            recommendations: [...s.recommendations, recommendation],
+            draft: null,
+          }));
+        }}
+      />
+    );
+  } else {
+    screen = (
+      <Recommendation
+        recommendation={latest}
+        onEditAnswers={() => saveDraft(latestProfile ? profileToAnswers(latestProfile) : {}, 1)}
+      />
+    );
+  }
 
   return (
     <>
@@ -83,14 +143,7 @@ function AppShell() {
           {t(`storage.saveError.${saveError}`)}
         </p>
       )}
-      {screen === "home" && (
-        <StepLayout title={t("app.title")}>
-          <p>{t("home.placeholder")}</p>
-          <p className="field-hint">
-            {t("home.storageMode", { mode: t(`storage.mode.${storageMode}`) })}
-          </p>
-        </StepLayout>
-      )}
+      {screen}
     </>
   );
 }

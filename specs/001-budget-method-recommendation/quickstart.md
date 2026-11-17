@@ -23,6 +23,8 @@ npm run typecheck    # tsc --noEmit, strict
 npm run lint
 npm test             # Vitest: домен, хранилище, импорт/экспорт
 npm run test:e2e     # Playwright с моком window.Telegram.WebApp
+# Без скачанных браузеров Playwright — через установленный Chrome:
+# PowerShell: $env:PW_CHANNEL="chrome"; npm run test:e2e
 ```
 
 Ожидаемо:

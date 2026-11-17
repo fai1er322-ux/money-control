@@ -23,7 +23,7 @@
 | `currency` | `"RUB"` | да | Все суммы профиля в этой валюте |
 | `incomeType` | `fixed` \| `freelance` \| `mixed` \| `seasonal` | да | |
 | `monthlyIncome` | Money | да | > 0. Для нефиксированного дохода — средний месяц |
-| `incomeMin` | Money | если `incomeType ≠ fixed` | ≤ `monthlyIncome` |
+| `incomeMin` | Money | если `incomeType ≠ fixed` | > 0 и ≤ `monthlyIncome` (основа плана, делим на неё) |
 | `incomeMax` | Money | если `incomeType ≠ fixed` | ≥ `monthlyIncome` |
 | `mandatoryExpenses` | Money | да | Жильё, коммунальные, связь, лекарства и т. п. |
 | `debtPayments` | Money | да | Ежемесячные платежи по долгам, ≥ 0 |
@@ -90,7 +90,7 @@ Edge case «очень нестабильный доход» (spec): при `inc
 | `scores` | `Record<MethodId, number>` | Пусто в режиме `deficit` |
 | `recommendedMethodId` | MethodId \| null | null в режиме `deficit` |
 | `alternativeMethodId` | MethodId \| null | Второй по баллам |
-| `factors` | 2–4 × `{ ruleId, points, explanationKey, params }` | Правила с наибольшим вкладом в рекомендованный метод |
+| `factors` | 1–4 × `{ ruleId, points, explanationKey, params }` | Правила с наибольшим вкладом в рекомендованный метод |
 | `deficit` | Money \| null | `obligations − baseIncome` в режиме `deficit` |
 | `decision` | `pending` \| `accepted` \| `overridden` | |
 | `chosenMethodId` | MethodId \| null | При `accepted` = рекомендованный; при `overridden` — выбранный пользователем |

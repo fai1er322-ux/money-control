@@ -1,0 +1,74 @@
+{
+  "name": "E2 freelancer",
+  "input": {
+    "currency": "RUB",
+    "incomeType": "freelance",
+    "monthlyIncome": {
+      "amount": 9000000,
+      "currency": "RUB"
+    },
+    "incomeMin": {
+      "amount": 4000000,
+      "currency": "RUB"
+    },
+    "incomeMax": {
+      "amount": 15000000,
+      "currency": "RUB"
+    },
+    "mandatoryExpenses": {
+      "amount": 3000000,
+      "currency": "RUB"
+    },
+    "debtPayments": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "debtTotal": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "dependents": 0,
+    "savings": {
+      "amount": 5000000,
+      "currency": "RUB"
+    },
+    "goal": "spending_control",
+    "controlLevel": "simple"
+  },
+  "expected": {
+    "metrics": {
+      "baseIncome": {
+        "amount": 4000000,
+        "currency": "RUB"
+      },
+      "stabilityBp": 4444,
+      "isIrregular": true,
+      "obligations": {
+        "amount": 3000000,
+        "currency": "RUB"
+      },
+      "mandatoryShareBp": 7500,
+      "debtLoadBp": 0,
+      "savingsMonthsX10": 16,
+      "isDeficit": false
+    },
+    "mode": "normal",
+    "scores": {
+      "rule_50_30_20": 10,
+      "rule_70_20_10": 10,
+      "pay_yourself_first": 15,
+      "weekly_limits": 45,
+      "envelopes": 30,
+      "base_plus_buffer": 50
+    },
+    "recommendedMethodId": "base_plus_buffer",
+    "alternativeMethodId": "weekly_limits",
+    "deficit": null,
+    "factors": [
+      {
+        "ruleId": "R1_irregular_income",
+        "points": 50
+      }
+    ]
+  }
+}

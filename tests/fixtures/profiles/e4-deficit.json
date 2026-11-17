@@ -1,0 +1,57 @@
+{
+  "name": "E4 deficit",
+  "input": {
+    "currency": "RUB",
+    "incomeType": "fixed",
+    "monthlyIncome": {
+      "amount": 5000000,
+      "currency": "RUB"
+    },
+    "mandatoryExpenses": {
+      "amount": 4500000,
+      "currency": "RUB"
+    },
+    "debtPayments": {
+      "amount": 1000000,
+      "currency": "RUB"
+    },
+    "debtTotal": {
+      "amount": 20000000,
+      "currency": "RUB"
+    },
+    "dependents": 0,
+    "savings": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "goal": "debt_payoff",
+    "controlLevel": "simple"
+  },
+  "expected": {
+    "metrics": {
+      "baseIncome": {
+        "amount": 5000000,
+        "currency": "RUB"
+      },
+      "stabilityBp": 10000,
+      "isIrregular": false,
+      "obligations": {
+        "amount": 5500000,
+        "currency": "RUB"
+      },
+      "mandatoryShareBp": 11000,
+      "debtLoadBp": 2000,
+      "savingsMonthsX10": 0,
+      "isDeficit": true
+    },
+    "mode": "deficit",
+    "scores": {},
+    "recommendedMethodId": null,
+    "alternativeMethodId": null,
+    "deficit": {
+      "amount": 500000,
+      "currency": "RUB"
+    },
+    "factors": []
+  }
+}

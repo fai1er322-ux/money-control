@@ -1,0 +1,78 @@
+{
+  "name": "E1 stable salary",
+  "input": {
+    "currency": "RUB",
+    "incomeType": "fixed",
+    "monthlyIncome": {
+      "amount": 12000000,
+      "currency": "RUB"
+    },
+    "mandatoryExpenses": {
+      "amount": 4500000,
+      "currency": "RUB"
+    },
+    "debtPayments": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "debtTotal": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "dependents": 0,
+    "savings": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "goal": "emergency_fund",
+    "controlLevel": "simple"
+  },
+  "expected": {
+    "metrics": {
+      "baseIncome": {
+        "amount": 12000000,
+        "currency": "RUB"
+      },
+      "stabilityBp": 10000,
+      "isIrregular": false,
+      "obligations": {
+        "amount": 4500000,
+        "currency": "RUB"
+      },
+      "mandatoryShareBp": 3750,
+      "debtLoadBp": 0,
+      "savingsMonthsX10": 0,
+      "isDeficit": false
+    },
+    "mode": "normal",
+    "scores": {
+      "rule_50_30_20": 60,
+      "rule_70_20_10": 10,
+      "pay_yourself_first": 40,
+      "weekly_limits": 0,
+      "envelopes": 0,
+      "base_plus_buffer": 0
+    },
+    "recommendedMethodId": "rule_50_30_20",
+    "alternativeMethodId": "pay_yourself_first",
+    "deficit": null,
+    "factors": [
+      {
+        "ruleId": "R3_low_obligations",
+        "points": 30
+      },
+      {
+        "ruleId": "R2_stable_income",
+        "points": 10
+      },
+      {
+        "ruleId": "R8_control_simple",
+        "points": 10
+      },
+      {
+        "ruleId": "R9_goal_emergency_low_savings",
+        "points": 10
+      }
+    ]
+  }
+}

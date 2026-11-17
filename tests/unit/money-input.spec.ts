@@ -49,3 +49,20 @@ describe("formatMoney", () => {
     expect(norm(formatMoney(money(-500_000)))).toBe("-5 000 ₽");
   });
 });
+
+describe("explanation params formatting", () => {
+  it("formats basis points as a percent and tenths as decimals", async () => {
+    const { formatBpPercent, formatTenths, displayParams } =
+      await import("../../src/ui/i18n/format");
+    expect(formatBpPercent(3750)).toMatch(/^37,5\s%$/);
+    expect(formatBpPercent(3000)).toMatch(/^30\s%$/);
+    expect(formatBpPercent(4444)).toMatch(/^44,44\s%$/);
+    expect(formatTenths(16)).toBe("1,6");
+    expect(formatTenths(30)).toBe("3");
+    expect(displayParams({ shareBp: 8000, savingsMonthsX10: 5, dependents: 2 })).toEqual({
+      share: formatBpPercent(8000),
+      savingsMonths: "0,5",
+      dependents: 2,
+    });
+  });
+});

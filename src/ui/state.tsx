@@ -5,7 +5,10 @@ import type { SaveError, StateRepository, StorageMode } from "../storage/reposit
 interface AppStateContextValue {
   state: AppState;
   storageMode: StorageMode;
-  /** Applies a pure update and persists the result. Saves are serialized in call order. */
+  /**
+   * Applies a pure update and persists the result. Saves run one at a time; updates made while
+   * a save is in flight are coalesced into a single save of the latest state.
+   */
   update: (fn: (prev: AppState) => AppState) => void;
   saveError: SaveError | null;
   /** FR-021: removes all data on this device and resets to an empty state. */
@@ -27,14 +30,20 @@ export function AppStateProvider({
   const [saveError, setSaveError] = useState<SaveError | null>(null);
   const latest = useRef(initial);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const version = useRef(0);
+  const savedVersion = useRef(0);
 
   const update = useCallback(
     (fn: (prev: AppState) => AppState) => {
       const next = fn(latest.current);
       latest.current = next;
+      version.current += 1;
       setState(next);
       queue.current = queue.current.then(async () => {
-        const res = await repository.save(next);
+        if (savedVersion.current === version.current) return;
+        const target = version.current;
+        const res = await repository.save(latest.current);
+        savedVersion.current = target;
         setSaveError(res.ok ? null : res.error);
       });
     },
@@ -46,6 +55,7 @@ export function AppStateProvider({
       await queue.current;
       await repository.wipe();
       latest.current = empty;
+      savedVersion.current = version.current;
       setState(empty);
       setSaveError(null);
     },

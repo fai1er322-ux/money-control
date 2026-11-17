@@ -82,24 +82,24 @@ description: "Task list for 001-budget-method-recommendation"
 
 > Написать первыми и убедиться, что падают
 
-- [ ] T023 [P] [US1] Эталонные фикстуры профилей E1–E4 в копейках с ожидаемыми `metrics`, `scores`, `recommendedMethodId`, `alternativeMethodId`, `factors` в `tests/fixtures/profiles/e1-stable-salary.json`, `e2-freelancer.json`, `e3-high-debt.json`, `e4-deficit.json`
-- [ ] T024 [P] [US1] Тесты валидации анкеты в `tests/unit/profile.spec.ts`: «`monthlyIncome` > 0»; «`incomeMin` ≤ `monthlyIncome`», «`incomeMax` ≥ `monthlyIncome`», обязательны «если `incomeType ≠ fixed`»; «`debtTotal` ≥ 0; если `debtPayments > 0`, то `> 0`»; «`dependents` 0–20»; `mandatoryExpenses + debtPayments ≤ 100 × monthlyIncome`; ошибки возвращаются как `FieldError[]`, а не исключения
-- [ ] T025 [P] [US1] Тесты показателей в `tests/unit/metrics.spec.ts` по формулам data-model.md «ProfileMetrics», включая `savingsMonthsX10` = 120 при `obligations = 0` и `isIrregular` при `stabilityBp < 7 000`
-- [ ] T026 [P] [US1] Тесты скоринга в `tests/unit/scoring.spec.ts`: E1–E4 по фикстурам T023; детерминизм (два вызова → равные результаты); ничья решается меньшим `order`; факторы — «не больше 4», по убыванию баллов, при равенстве — по порядку правил; при `isDeficit` правила не вызываются
-- [ ] T027 [P] [US1] E2E сценарии US1.1–US1.4 из spec.md в `tests/e2e/us1-recommendation.spec.ts` (мок Telegram из T010); плюс edge cases: прерванная анкета продолжается после перезагрузки (FR-004), ошибка рядом с полем при отрицательной сумме (FR-003), режим дефицита (FR-012)
+- [X] T023 [P] [US1] Эталонные фикстуры профилей E1–E4 в копейках с ожидаемыми `metrics`, `scores`, `recommendedMethodId`, `alternativeMethodId`, `factors` в `tests/fixtures/profiles/e1-stable-salary.json`, `e2-freelancer.json`, `e3-high-debt.json`, `e4-deficit.json`
+- [X] T024 [P] [US1] Тесты валидации анкеты в `tests/unit/profile.spec.ts`: «`monthlyIncome` > 0»; «`incomeMin` ≤ `monthlyIncome`», «`incomeMax` ≥ `monthlyIncome`», обязательны «если `incomeType ≠ fixed`»; «`debtTotal` ≥ 0; если `debtPayments > 0`, то `> 0`»; «`dependents` 0–20»; `mandatoryExpenses + debtPayments ≤ 100 × monthlyIncome`; ошибки возвращаются как `FieldError[]`, а не исключения
+- [X] T025 [P] [US1] Тесты показателей в `tests/unit/metrics.spec.ts` по формулам data-model.md «ProfileMetrics», включая `savingsMonthsX10` = 120 при `obligations = 0` и `isIrregular` при `stabilityBp < 7 000`
+- [X] T026 [P] [US1] Тесты скоринга в `tests/unit/scoring.spec.ts`: E1–E4 по фикстурам T023; детерминизм (два вызова → равные результаты); ничья решается меньшим `order`; факторы — «не больше 4», по убыванию баллов, при равенстве — по порядку правил; при `isDeficit` правила не вызываются
+- [X] T027 [P] [US1] E2E сценарии US1.1–US1.4 из spec.md в `tests/e2e/us1-recommendation.spec.ts` (мок Telegram из T010); плюс edge cases: прерванная анкета продолжается после перезагрузки (FR-004), ошибка рядом с полем при отрицательной сумме (FR-003), режим дефицита (FR-012)
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Zod-схемы `FinancialProfileInput`, `FinancialProfile`, `QuestionnaireDraft` и `validateProfileInput`/`validateDraft` в `src/domain/profile.ts` (поля и правила — data-model.md «FinancialProfile», «QuestionnaireDraft»)
-- [ ] T029 [P] [US1] `computeMetrics` в `src/domain/metrics.ts` (data-model.md «ProfileMetrics»)
-- [ ] T030 [P] [US1] Каталог методов `METHODS` (id, `order`, `titleKey`, `descriptionKey`, `minSavingsBp`, `hasWeeklyLimits`) в `src/domain/methods/catalog.ts` по таблице contracts/scoring-rules-v1.md §2
-- [ ] T031 [US1] Правила `SCORING_RULES_V1` (R1–R13, `version: "1.0.0"`) в `src/domain/scoring/rules-v1.ts` (зависит от T029, T030)
-- [ ] T032 [US1] Движок `recommend(profile, rules, ctx)` и выбор факторов в `src/domain/scoring/engine.ts`; результат — `Recommendation` с `decision: "pending"`, `rulesVersion`, `profileId` (зависит от T031; T026 должен пройти)
-- [ ] T033 [P] [US1] Строки анкеты, методов, правил (`explanationKey` с параметрами вроде доли трат в %), режима дефицита и дисклеймера в `src/ui/i18n/ru.ts`; тексты дефицита нейтральные и с конкретным следующим шагом (принцип VI)
-- [ ] T034 [US1] Экран приветствия с уведомлением о локальном хранении (FR-020a, запись `localStorageNoticeAcknowledgedAt`) в `src/ui/screens/Welcome.tsx`
-- [ ] T035 [US1] Анкета из 4 шагов (доход → обязательные траты и долги → семья и сбережения → цель и контроль, 11 вопросов) с сохранением черновика на каждом шаге и `MainButton`/`BackButton` Telegram в `src/ui/screens/Questionnaire.tsx` (зависит от T028, T021)
-- [ ] T036 [US1] Экран рекомендации в `src/ui/screens/Recommendation.tsx`: метод и описание, факторы с объяснениями, альтернатива, дисклеймер (FR-011), режим дефицита с суммой дефицита и следующими шагами (зависит от T032, T033)
-- [ ] T037 [US1] Подключить поток Welcome → Questionnaire → Recommendation в `src/app.tsx`: сохранение профиля и рекомендации в `AppState`, удаление черновика после сохранения профиля
+- [X] T028 [P] [US1] Zod-схемы `FinancialProfileInput`, `FinancialProfile`, `QuestionnaireDraft` и `validateProfileInput`/`validateDraft` в `src/domain/profile.ts` (поля и правила — data-model.md «FinancialProfile», «QuestionnaireDraft»)
+- [X] T029 [P] [US1] `computeMetrics` в `src/domain/metrics.ts` (data-model.md «ProfileMetrics»)
+- [X] T030 [P] [US1] Каталог методов `METHODS` (id, `order`, `titleKey`, `descriptionKey`, `minSavingsBp`, `hasWeeklyLimits`) в `src/domain/methods/catalog.ts` по таблице contracts/scoring-rules-v1.md §2
+- [X] T031 [US1] Правила `SCORING_RULES_V1` (R1–R13, `version: "1.0.0"`) в `src/domain/scoring/rules-v1.ts` (зависит от T029, T030)
+- [X] T032 [US1] Движок `recommend(profile, rules, ctx)` и выбор факторов в `src/domain/scoring/engine.ts`; результат — `Recommendation` с `decision: "pending"`, `rulesVersion`, `profileId` (зависит от T031; T026 должен пройти)
+- [X] T033 [P] [US1] Строки анкеты, методов, правил (`explanationKey` с параметрами вроде доли трат в %), режима дефицита и дисклеймера в `src/ui/i18n/ru.ts`; тексты дефицита нейтральные и с конкретным следующим шагом (принцип VI)
+- [X] T034 [US1] Экран приветствия с уведомлением о локальном хранении (FR-020a, запись `localStorageNoticeAcknowledgedAt`) в `src/ui/screens/Welcome.tsx`
+- [X] T035 [US1] Анкета из 4 шагов (доход → обязательные траты и долги → семья и сбережения → цель и контроль, 11 вопросов) с сохранением черновика на каждом шаге и `MainButton`/`BackButton` Telegram в `src/ui/screens/Questionnaire.tsx` (зависит от T028, T021)
+- [X] T036 [US1] Экран рекомендации в `src/ui/screens/Recommendation.tsx`: метод и описание, факторы с объяснениями, альтернатива, дисклеймер (FR-011), режим дефицита с суммой дефицита и следующими шагами (зависит от T032, T033)
+- [X] T037 [US1] Подключить поток Welcome → Questionnaire → Recommendation в `src/app.tsx`: сохранение профиля и рекомендации в `AppState`, удаление черновика после сохранения профиля
 
 **Checkpoint**: US1 работает и проверяется отдельно — это MVP
 

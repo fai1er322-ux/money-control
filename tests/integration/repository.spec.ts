@@ -3,15 +3,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { emptyAppState, type AppState } from "../../src/storage/app-state";
 import { createRepository } from "../../src/storage/repository";
 import { getWebApp } from "../../src/telegram/webapp";
+import { e1 } from "../fixtures/profiles";
 import { installTelegramMock, type TelegramMock } from "../mocks/telegram";
 
 const KEY = "mc.key.v1";
 const META = "mc.state.meta";
 
+function profile(id: string): AppState["profiles"][number] {
+  return {
+    ...(e1.input as Omit<AppState["profiles"][number], "id" | "createdAt">),
+    id,
+    createdAt: "2026-11-17T10:00:00.000Z",
+  };
+}
+
 function sampleState(note: string): AppState {
   return {
     ...emptyAppState(),
-    profiles: [{ id: `profile-${note}`, createdAt: "2026-11-17T10:00:00.000Z" }],
+    profiles: [profile(`profile-${note}`)],
     localStorageNoticeAcknowledgedAt: "2026-11-17T10:00:00.000Z",
   };
 }
@@ -145,7 +154,7 @@ describe("telegram mode details", () => {
     tg = installTelegramMock();
     const r = await createRepository(getWebApp());
     const big = sampleState("big");
-    big.profiles = Array.from({ length: 2000 }, (_, i) => ({ id: `p-${i}`, note: "x".repeat(40) }));
+    big.profiles = Array.from({ length: 400 }, (_, i) => profile(`p-${i}`));
     await r.save(big);
     const meta = JSON.parse(tg.device.get(META)!);
     expect(meta.chunks).toBeGreaterThan(1);

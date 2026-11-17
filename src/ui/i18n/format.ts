@@ -48,3 +48,35 @@ export function formatMoney(m: Money): string {
   const text = formatter(m.currency).format(Number(`${whole}.${String(kop).padStart(2, "0")}`));
   return negative ? `-${text}` : text;
 }
+
+const NBSP = String.fromCharCode(160);
+
+/** 3750 bp → "37,5 %". Integer arithmetic; trailing zeros of the fraction are dropped. */
+export function formatBpPercent(bp: number): string {
+  const whole = Math.trunc(bp / 100);
+  const frac = String(Math.abs(bp % 100))
+    .padStart(2, "0")
+    .replace(/0+$/, "");
+  return `${whole}${frac ? `,${frac}` : ""}${NBSP}%`;
+}
+
+/** 16 (tenths) → "1,6". */
+export function formatTenths(x10: number): string {
+  const whole = Math.trunc(x10 / 10);
+  const frac = Math.abs(x10 % 10);
+  return frac === 0 ? String(whole) : `${whole},${frac}`;
+}
+
+/**
+ * Turns domain explanation params into display params: `*Bp` → percent, `*X10` → tenths,
+ * with the suffix dropped (shareBp → share, savingsMonthsX10 → savingsMonths).
+ */
+export function displayParams(params: Record<string, number>): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (key.endsWith("Bp")) out[key.slice(0, -2)] = formatBpPercent(value);
+    else if (key.endsWith("X10")) out[key.slice(0, -3)] = formatTenths(value);
+    else out[key] = value;
+  }
+  return out;
+}

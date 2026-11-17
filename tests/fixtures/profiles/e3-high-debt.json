@@ -1,0 +1,78 @@
+{
+  "name": "E3 high debt",
+  "input": {
+    "currency": "RUB",
+    "incomeType": "fixed",
+    "monthlyIncome": {
+      "amount": 10000000,
+      "currency": "RUB"
+    },
+    "mandatoryExpenses": {
+      "amount": 5000000,
+      "currency": "RUB"
+    },
+    "debtPayments": {
+      "amount": 3000000,
+      "currency": "RUB"
+    },
+    "debtTotal": {
+      "amount": 60000000,
+      "currency": "RUB"
+    },
+    "dependents": 1,
+    "savings": {
+      "amount": 0,
+      "currency": "RUB"
+    },
+    "goal": "debt_payoff",
+    "controlLevel": "detailed"
+  },
+  "expected": {
+    "metrics": {
+      "baseIncome": {
+        "amount": 10000000,
+        "currency": "RUB"
+      },
+      "stabilityBp": 10000,
+      "isIrregular": false,
+      "obligations": {
+        "amount": 8000000,
+        "currency": "RUB"
+      },
+      "mandatoryShareBp": 8000,
+      "debtLoadBp": 3000,
+      "savingsMonthsX10": 0,
+      "isDeficit": false
+    },
+    "mode": "normal",
+    "scores": {
+      "rule_50_30_20": 15,
+      "rule_70_20_10": 5,
+      "pay_yourself_first": 20,
+      "weekly_limits": 50,
+      "envelopes": 90,
+      "base_plus_buffer": 0
+    },
+    "recommendedMethodId": "envelopes",
+    "alternativeMethodId": "weekly_limits",
+    "deficit": null,
+    "factors": [
+      {
+        "ruleId": "R6_high_debt",
+        "points": 35
+      },
+      {
+        "ruleId": "R5_high_obligations",
+        "points": 30
+      },
+      {
+        "ruleId": "R7_control_detailed",
+        "points": 15
+      },
+      {
+        "ruleId": "R11_goal_debt_payoff",
+        "points": 10
+      }
+    ]
+  }
+}

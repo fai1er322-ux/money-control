@@ -27,13 +27,13 @@ description: "Task list for 001-budget-method-recommendation"
 
 **Purpose**: инициализация проекта и инструментов
 
-- [ ] T001 Создать Vite-проект React 19 + TypeScript в корне репозитория: `package.json` (name `money-control`, `"type": "module"`, `engines.node` ≥ 22), `index.html` с подключением `https://telegram.org/js/telegram-web-app.js` до бандла, `src/main.tsx`, `src/app.tsx`, `vite.config.ts`
-- [ ] T002 Настроить TypeScript strict в `tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, target ES2022) и добавить скрипт `typecheck` (`tsc --noEmit`) в `package.json`
-- [ ] T003 [P] Настроить ESLint (flat config) и Prettier в `eslint.config.js` и `.prettierrc`; правило `no-console` = error для `src/domain/**` и `src/storage/**` (принцип II: никаких сумм в логах); скрипт `lint`
-- [ ] T004 [P] Настроить Vitest + jsdom + Testing Library в `vitest.config.ts` и `tests/setup.ts`; скрипт `test`
-- [ ] T005 [P] Настроить Playwright в `playwright.config.ts` (проекты Chromium mobile 375×812 и desktop 1280×800, webServer — `vite preview`); скрипт `test:e2e`
-- [ ] T006 [P] Создать каталоги из plan.md: `src/domain/methods/`, `src/domain/scoring/`, `src/storage/`, `src/telegram/`, `src/ui/screens/`, `src/ui/components/`, `src/ui/i18n/`, `tests/fixtures/profiles/`, `tests/unit/`, `tests/integration/`, `tests/e2e/`
-- [ ] T007 [P] Добавить в `.gitignore` `node_modules/`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`
+- [X] T001 Создать Vite-проект React 19 + TypeScript в корне репозитория: `package.json` (name `money-control`, `"type": "module"`, `engines.node` ≥ 22), `index.html` с подключением `https://telegram.org/js/telegram-web-app.js` до бандла, `src/main.tsx`, `src/app.tsx`, `vite.config.ts`
+- [X] T002 Настроить TypeScript strict в `tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, target ES2022) и добавить скрипт `typecheck` (`tsc --noEmit`) в `package.json`
+- [X] T003 [P] Настроить ESLint (flat config) и Prettier в `eslint.config.js` и `.prettierrc`; правило `no-console` = error для `src/domain/**` и `src/storage/**` (принцип II: никаких сумм в логах); скрипт `lint`
+- [X] T004 [P] Настроить Vitest + jsdom + Testing Library в `vitest.config.ts` и `tests/setup.ts`; скрипт `test`
+- [X] T005 [P] Настроить Playwright в `playwright.config.ts` (проекты Chromium mobile 375×812 и desktop 1280×800, webServer — `vite preview`); скрипт `test:e2e`
+- [X] T006 [P] Создать каталоги из plan.md: `src/domain/methods/`, `src/domain/scoring/`, `src/storage/`, `src/telegram/`, `src/ui/screens/`, `src/ui/components/`, `src/ui/i18n/`, `tests/fixtures/profiles/`, `tests/unit/`, `tests/integration/`, `tests/e2e/`
+- [X] T007 [P] Добавить в `.gitignore` `node_modules/`, `dist/`, `coverage/`, `playwright-report/`, `test-results/`
 
 ---
 
@@ -46,23 +46,23 @@ description: "Task list for 001-budget-method-recommendation"
 
 ### Tests for Foundational ⚠️
 
-- [ ] T008 [P] Тесты `Money` в `tests/unit/money.spec.ts`: «Операции над `Money` с разной валютой бросают ошибку»; `amount` — «Копейки. `Number.isSafeInteger`»; `allocateBp(total, shares)` даёт `floor(база × доля / 10 000)` и возвращает остаток округления отдельно (контракт scoring-rules-v1 §2)
-- [ ] T009 [P] Тесты шифрования в `tests/unit/crypto.spec.ts`: AES-GCM 256, «новый IV на каждую запись», расшифровка изменённого шифртекста возвращает `DECRYPT_FAILED`
-- [ ] T010 [P] Мок `window.Telegram.WebApp` в `tests/mocks/telegram.ts`: `isVersionAtLeast`, `DeviceStorage` и `SecureStorage` в памяти с сигнатурами колбэков из research.md R2 (`getItem` для SecureStorage возвращает третьим аргументом флаг восстановимости), `restoreItem`, `downloadFile`, `MainButton`, `BackButton`, `themeParams`
-- [ ] T011 Интеграционные тесты репозитория в `tests/integration/repository.spec.ts` (зависит от T010): выбор режима `telegram`/`indexeddb` по правилам contracts/storage.md; круговое `save`/`load`; запись в неактивный слот — «Прерванная запись оставляет `meta` на старом, целом слоте» (симулировать сбой после записи частей); `KEY_MISSING` и вызов `restoreItem`; `wipe()` удаляет данные и ключ; моки `fetch` и `XMLHttpRequest` падают при любом вызове (FR-020)
+- [X] T008 [P] Тесты `Money` в `tests/unit/money.spec.ts`: «Операции над `Money` с разной валютой бросают ошибку»; `amount` — «Копейки. `Number.isSafeInteger`»; `allocateBp(total, shares)` даёт `floor(база × доля / 10 000)` и возвращает остаток округления отдельно (контракт scoring-rules-v1 §2)
+- [X] T009 [P] Тесты шифрования в `tests/unit/crypto.spec.ts`: AES-GCM 256, «новый IV на каждую запись», расшифровка изменённого шифртекста возвращает `DECRYPT_FAILED`
+- [X] T010 [P] Мок `window.Telegram.WebApp` в `tests/mocks/telegram.ts`: `isVersionAtLeast`, `DeviceStorage` и `SecureStorage` в памяти с сигнатурами колбэков из research.md R2 (`getItem` для SecureStorage возвращает третьим аргументом флаг восстановимости), `restoreItem`, `downloadFile`, `MainButton`, `BackButton`, `themeParams`
+- [X] T011 Интеграционные тесты репозитория в `tests/integration/repository.spec.ts` (зависит от T010): выбор режима `telegram`/`indexeddb` по правилам contracts/storage.md; круговое `save`/`load`; запись в неактивный слот — «Прерванная запись оставляет `meta` на старом, целом слоте» (симулировать сбой после записи частей); `KEY_MISSING` и вызов `restoreItem`; `wipe()` удаляет данные и ключ; моки `fetch` и `XMLHttpRequest` падают при любом вызове (FR-020)
 
 ### Implementation for Foundational
 
-- [ ] T012 [P] Реализовать `Money`, `Currency = "RUB"`, `add`, `sub`, `allocateBp` в `src/domain/money.ts` (чистые функции, без зависимостей)
-- [ ] T013 [P] Реализовать типизированную обёртку `TelegramWebApp` в `src/telegram/webapp.ts`: `getWebApp(): TelegramWebApp | null`, промисы над колбэками DeviceStorage/SecureStorage, `ready()`, `expand()`, тема из `themeParams` в CSS-переменные; `initData` и `user.id` не читаются (research.md R10)
-- [ ] T014 [P] Реализовать AES-GCM конверт в `src/storage/crypto.ts`: `generateKey`, `exportKeyBase64`/`importKeyBase64` (режим telegram), `encrypt(key, bytes) → { iv, ciphertext }`, `decrypt`
-- [ ] T015 [P] Описать Zod-схему `AppState` (`schemaVersion: 1`, `profiles`, `draft`, `recommendations`, `plans`, `activePlanId`, `localStorageNoticeAcknowledgedAt`) и функцию `migrate(raw)` в `src/storage/app-state.ts` по data-model.md «AppState»
-- [ ] T016 Реализовать `src/storage/telegram-storage.ts`: ключ в SecureStorage `mc.key.v1`, данные в DeviceStorage `mc.state.meta` + `mc.state.<slot>.0…n`, части ≤ 32 КБ, слоты a/b по contracts/storage.md (зависит от T013, T014)
-- [ ] T017 [P] Реализовать `src/storage/indexeddb-storage.ts`: БД `money-control`, хранилища `keys` (`CryptoKey`, `extractable: false`) и `state` (зависит от T014)
-- [ ] T018 Реализовать `createRepository` и `StateRepository` в `src/storage/repository.ts`: выбор режима, `LoadError`/`SaveError` из contracts/storage.md, запрет молчаливой смены режима (зависит от T015–T017; T011 должен пройти)
-- [ ] T019 [P] Создать словарь строк `src/ui/i18n/ru.ts` и хелпер `t(key, params)` с форматированием сумм `Intl.NumberFormat('ru-RU', { style: 'currency', currency })` из копеек
-- [ ] T020 Создать каркас приложения в `src/app.tsx`: загрузка состояния через репозиторий, контекст `AppStateProvider` с `dispatch` и автосохранением, простой роутер экранов, экран ошибки хранилища для `LoadError` (зависит от T018, T019)
-- [ ] T021 [P] Создать доступные базовые компоненты в `src/ui/components/`: `MoneyInput` (ввод в рублях, хранение в копейках, `inputmode="decimal"`, подпись и текст ошибки связаны через `aria-describedby`), `Choice` (радиогруппа), `StepLayout`, `Disclaimer`; ширина от 320 px
+- [X] T012 [P] Реализовать `Money`, `Currency = "RUB"`, `add`, `sub`, `allocateBp` в `src/domain/money.ts` (чистые функции, без зависимостей)
+- [X] T013 [P] Реализовать типизированную обёртку `TelegramWebApp` в `src/telegram/webapp.ts`: `getWebApp(): TelegramWebApp | null`, промисы над колбэками DeviceStorage/SecureStorage, `ready()`, `expand()`, тема из `themeParams` в CSS-переменные; `initData` и `user.id` не читаются (research.md R10)
+- [X] T014 [P] Реализовать AES-GCM конверт в `src/storage/crypto.ts`: `generateKey`, `exportKeyBase64`/`importKeyBase64` (режим telegram), `encrypt(key, bytes) → { iv, ciphertext }`, `decrypt`
+- [X] T015 [P] Описать Zod-схему `AppState` (`schemaVersion: 1`, `profiles`, `draft`, `recommendations`, `plans`, `activePlanId`, `localStorageNoticeAcknowledgedAt`) и функцию `migrate(raw)` в `src/storage/app-state.ts` по data-model.md «AppState»
+- [X] T016 Реализовать `src/storage/telegram-storage.ts`: ключ в SecureStorage `mc.key.v1`, данные в DeviceStorage `mc.state.meta` + `mc.state.<slot>.0…n`, части ≤ 32 КБ, слоты a/b по contracts/storage.md (зависит от T013, T014)
+- [X] T017 [P] Реализовать `src/storage/indexeddb-storage.ts`: БД `money-control`, хранилища `keys` (`CryptoKey`, `extractable: false`) и `state` (зависит от T014)
+- [X] T018 Реализовать `createRepository` и `StateRepository` в `src/storage/repository.ts`: выбор режима, `LoadError`/`SaveError` из contracts/storage.md, запрет молчаливой смены режима (зависит от T015–T017; T011 должен пройти)
+- [X] T019 [P] Создать словарь строк `src/ui/i18n/ru.ts` и хелпер `t(key, params)` с форматированием сумм `Intl.NumberFormat('ru-RU', { style: 'currency', currency })` из копеек
+- [X] T020 Создать каркас приложения в `src/app.tsx`: загрузка состояния через репозиторий, контекст `AppStateProvider` с `dispatch` и автосохранением, простой роутер экранов, экран ошибки хранилища для `LoadError` (зависит от T018, T019)
+- [X] T021 [P] Создать доступные базовые компоненты в `src/ui/components/`: `MoneyInput` (ввод в рублях, хранение в копейках, `inputmode="decimal"`, подпись и текст ошибки связаны через `aria-describedby`), `Choice` (радиогруппа), `StepLayout`, `Disclaimer`; ширина от 320 px
 - [ ] T022 Спайк: проверить DeviceStorage и SecureStorage в Telegram iOS/Android, Desktop и Web на тестовом боте; записать результат (какой режим выбран на каком клиенте) в `specs/001-budget-method-recommendation/research.md` раздел R2 «Risk» (зависит от T018, T020)
 
 **Checkpoint**: фундамент готов — можно начинать истории

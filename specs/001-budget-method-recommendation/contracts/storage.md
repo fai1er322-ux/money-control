@@ -12,8 +12,13 @@ interface StateRepository {
   wipe(): Promise<void>;                                   // FR-021: полное удаление
 }
 
-type LoadError = "DECRYPT_FAILED" | "KEY_MISSING" | "KEY_RESTORE_DECLINED" | "SCHEMA_INVALID";
-type SaveError = "QUOTA_EXCEEDED" | "STORAGE_UNAVAILABLE";
+type LoadError =
+  | "DECRYPT_FAILED" | "KEY_MISSING" | "KEY_RESTORE_DECLINED" | "SCHEMA_INVALID"
+  | "MODE_UNAVAILABLE"      // данные лежат в Telegram-хранилище, а этот клиент его не даёт
+  | "STORAGE_UNAVAILABLE";  // ошибка ввода-вывода хранилища
+type SaveError =
+  | "QUOTA_EXCEEDED" | "STORAGE_UNAVAILABLE" | "MODE_UNAVAILABLE"
+  | "KEY_MISSING";          // ключа нет, а данные есть: новый ключ уничтожил бы их
 
 createRepository(webApp: TelegramWebApp | null): Promise<StateRepository>;
 ```
@@ -23,8 +28,10 @@ createRepository(webApp: TelegramWebApp | null): Promise<StateRepository>;
 1. `telegram`: `webApp.isVersionAtLeast("9.0")`, и есть `DeviceStorage` и `SecureStorage`.
 2. Иначе `indexeddb` (Telegram Desktop/Web без поддержки, локальная разработка).
 
-Выбранный режим запоминается в состоянии и не меняется молча. Если режим `telegram` стал
-недоступен, приложение показывает ошибку, а не начинает с пустыми данными.
+После первой записи в режиме `telegram` в IndexedDB (`money-control/meta`, ключ `mode`)
+ставится отметка. Если позже на этом устройстве выбран режим `indexeddb`, а отметка есть,
+`load` и `save` возвращают `MODE_UNAVAILABLE`: приложение показывает ошибку, а не начинает с
+пустыми данными. `wipe()` снимает отметку.
 
 ## Ключи
 

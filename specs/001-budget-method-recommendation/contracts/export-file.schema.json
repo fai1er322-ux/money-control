@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://money-control.app/schemas/export-file-v1.json",
+  "title": "Money Control export file v1",
+  "description": "Файл экспорта (FR-021). Не зашифрован: пользователь предупреждается об этом перед сохранением.",
+  "type": "object",
+  "required": ["app", "exportFormat", "exportedAt", "state"],
+  "additionalProperties": false,
+  "properties": {
+    "app": { "const": "money-control" },
+    "exportFormat": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "rulesVersions": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
+    },
+    "state": { "$ref": "#/$defs/AppState" }
+  },
+  "$defs": {
+    "Money": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991 },
+        "currency": { "enum": ["RUB"] }
+      }
+    },
+    "MethodId": {
+      "enum": ["rule_50_30_20", "rule_70_20_10", "pay_yourself_first", "weekly_limits", "envelopes", "base_plus_buffer"]
+    },
+    "FinancialProfile": {
+      "type": "object",
+      "required": ["id", "createdAt", "currency", "incomeType", "monthlyIncome", "mandatoryExpenses", "debtPayments", "debtTotal", "dependents", "savings", "goal", "controlLevel"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "currency": { "enum": ["RUB"] },
+        "incomeType": { "enum": ["fixed", "freelance", "mixed", "seasonal"] },
+        "monthlyIncome": { "$ref": "#/$defs/Money" },
+        "incomeMin": { "$ref": "#/$defs/Money" },
+        "incomeMax": { "$ref": "#/$defs/Money" },
+        "mandatoryExpenses": { "$ref": "#/$defs/Money" },
+        "debtPayments": { "$ref": "#/$defs/Money" },
+        "debtTotal": { "$ref": "#/$defs/Money" },
+        "dependents": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "savings": { "$ref": "#/$defs/Money" },
+        "goal": { "enum": ["emergency_fund", "big_purchase", "debt_payoff", "spending_control"] },
+        "controlLevel": { "enum": ["simple", "detailed"] }
+      }
+    },
+    "Recommendation": {
+      "type": "object",
+      "required": ["id", "createdAt", "profileId", "rulesVersion", "mode", "decision"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "profileId": { "type": "string", "format": "uuid" },
+        "rulesVersion": { "type": "string" },
+        "mode": { "enum": ["normal", "deficit"] },
+        "scores": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "recommendedMethodId": { "oneOf": [{ "$ref": "#/$defs/MethodId" }, { "type": "null" }] },
+        "alternativeMethodId": { "oneOf": [{ "$ref": "#/$defs/MethodId" }, { "type": "null" }] },
+        "factors": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["ruleId", "points", "explanationKey"],
+            "properties": {
+              "ruleId": { "type": "string" },
+              "points": { "type": "integer" },
+              "explanationKey": { "type": "string" },
+              "params": { "type": "object" }
+            }
+          }
+        },
+        "deficit": { "oneOf": [{ "$ref": "#/$defs/Money" }, { "type": "null" }] },
+        "decision": { "enum": ["pending", "accepted", "overridden"] },
+        "chosenMethodId": { "oneOf": [{ "$ref": "#/$defs/MethodId" }, { "type": "null" }] },
+        "decidedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "BudgetPlan": {
+      "type": "object",
+      "required": ["id", "recommendationId", "methodId", "period", "income", "parts", "warnings", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "recommendationId": { "type": "string", "format": "uuid" },
+        "methodId": { "$ref": "#/$defs/MethodId" },
+        "period": {
+          "type": "object",
+          "required": ["year", "month"],
+          "properties": {
+            "year": { "type": "integer", "minimum": 2000 },
+            "month": { "type": "integer", "minimum": 1, "maximum": 12 }
+          }
+        },
+        "income": { "$ref": "#/$defs/Money" },
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["key", "amount", "isManual", "isFixed"],
+            "properties": {
+              "key": { "type": "string" },
+              "amount": { "$ref": "#/$defs/Money" },
+              "isManual": { "type": "boolean" },
+              "isFixed": { "type": "boolean" }
+            }
+          }
+        },
+        "weeklyLimits": { "type": ["array", "null"] },
+        "surplusRule": { "type": ["object", "null"] },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AppState": {
+      "type": "object",
+      "required": ["schemaVersion", "profiles", "recommendations", "plans"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "profiles": { "type": "array", "items": { "$ref": "#/$defs/FinancialProfile" } },
+        "draft": { "type": ["object", "null"] },
+        "recommendations": { "type": "array", "items": { "$ref": "#/$defs/Recommendation" } },
+        "plans": { "type": "array", "items": { "$ref": "#/$defs/BudgetPlan" } },
+        "activePlanId": { "type": ["string", "null"] },
+        "localStorageNoticeAcknowledgedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}

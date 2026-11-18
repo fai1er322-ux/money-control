@@ -10,6 +10,8 @@
 - Подбор метода — прозрачная таблица правил с версией, без «чёрного ящика».
 - Копию данных можно выгрузить в файл и загрузить на другом устройстве.
 
+Сборка из `main` публикуется на GitHub Pages: https://fai1er322-ux.github.io/money-control/
+
 ## Документы
 
 - Конституция проекта: [.specify/memory/constitution.md](.specify/memory/constitution.md)

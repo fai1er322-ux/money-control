@@ -5,6 +5,7 @@ import type { StorageMode } from "../../storage/repository";
 import { ImportForm } from "../components/ImportForm";
 import { StepLayout } from "../components/StepLayout";
 import { t } from "../i18n/ru";
+import { useTelegramClient } from "../telegram";
 
 /**
  * Saves the export through a download link. Telegram's downloadFile needs an HTTPS URL of a
@@ -35,6 +36,7 @@ export function DataSettings({
   onDeleteAll: () => Promise<void>;
   onBack: () => void;
 }) {
+  const client = useTelegramClient();
   const [copyStatus, setCopyStatus] = useState<"copied" | "failed" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const hasData = state.profiles.length > 0 || state.draft !== null;
@@ -55,6 +57,8 @@ export function DataSettings({
       <section aria-labelledby="data-where">
         <h2 id="data-where">{t("data.where")}</h2>
         <p>{t("data.whereText", { mode: t(`storage.mode.${storageMode}`) })}</p>
+        {/* Shown so the storage spike (T022) can record which mode each client gets. */}
+        <p className="field-hint">{client ? t("data.client", client) : t("data.clientNone")}</p>
       </section>
 
       {hasData && (

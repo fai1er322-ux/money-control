@@ -152,6 +152,8 @@ export const ru = {
   "data.where": "Где хранятся",
   "data.whereText":
     "Только на этом устройстве, в зашифрованном виде: {mode}. На сервер ничего не отправляется.",
+  "data.client": "Клиент: Telegram {version}, платформа {platform}",
+  "data.clientNone": "Клиент: обычный браузер, без Telegram",
   "data.exportTitle": "Сохранить копию",
   "data.exportWarning":
     "Файл не зашифрован: в нём ваши доходы, траты и долги. Храните его там, где его не увидят посторонние.",

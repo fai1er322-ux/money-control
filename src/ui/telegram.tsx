@@ -10,6 +10,12 @@ import { t } from "./i18n/ru";
 const TelegramContext = createContext<TelegramWebApp | null>(null);
 export const TelegramProvider = TelegramContext.Provider;
 
+/** Client details for diagnostics (no user identity: initData is never read). */
+export function useTelegramClient(): { version: string; platform: string } | null {
+  const webApp = useContext(TelegramContext);
+  return webApp ? { version: webApp.version, platform: webApp.platform } : null;
+}
+
 function useNativeWebApp(): TelegramWebApp | null {
   const webApp = useContext(TelegramContext);
   return webApp && webApp.platform !== "unknown" ? webApp : null;

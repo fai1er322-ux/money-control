@@ -22,12 +22,34 @@ export interface TelegramMock {
   /** Fail every DeviceStorage.setItem after this many successful calls (null = never). */
   failDeviceSetAfter: number | null;
   deviceSetCalls: number;
+  /**
+   * How a storage answers: normally, with an error on every call, or never (a client that
+   * advertises Bot API 9.0 but does not implement the method — the callback is not called).
+   */
+  deviceBehavior: StoreBehavior;
+  secureBehavior: StoreBehavior;
   downloads: { url: string; file_name: string }[];
   uninstall(): void;
 }
 
+export type StoreBehavior = "ok" | "error" | "hang";
+
 type Cb<T> = ((err: string | null, value?: T, extra?: boolean) => void) | undefined;
 const later = (fn: () => void) => setTimeout(fn, 0);
+
+function withBehavior<S extends object>(store: S, behavior: () => StoreBehavior): S {
+  const wrapped: Record<string, unknown> = {};
+  for (const [name, fn] of Object.entries(store)) {
+    wrapped[name] = (...args: unknown[]) => {
+      const b = behavior();
+      if (b === "ok") return (fn as (...a: unknown[]) => unknown)(...args);
+      const cb = args.at(-1);
+      if (b === "error" && typeof cb === "function") later(() => cb("UNSUPPORTED"));
+      return wrapped;
+    };
+  }
+  return wrapped as S;
+}
 
 function compareVersions(a: string, b: string): number {
   const pa = a.split(".").map(Number);
@@ -74,6 +96,8 @@ export function installTelegramMock(opts: TelegramMockOptions = {}): TelegramMoc
     allowRestore: true,
     failDeviceSetAfter: null,
     deviceSetCalls: 0,
+    deviceBehavior: "ok",
+    secureBehavior: "ok",
     downloads: [],
     uninstall() {
       delete (window as { Telegram?: unknown }).Telegram;
@@ -173,8 +197,12 @@ export function installTelegramMock(opts: TelegramMockOptions = {}): TelegramMoc
     },
     MainButton: button(),
     BackButton: button(),
-    ...(opts.deviceStorage === false ? {} : { DeviceStorage }),
-    ...(opts.secureStorage === false ? {} : { SecureStorage }),
+    ...(opts.deviceStorage === false
+      ? {}
+      : { DeviceStorage: withBehavior(DeviceStorage, () => mock.deviceBehavior) }),
+    ...(opts.secureStorage === false
+      ? {}
+      : { SecureStorage: withBehavior(SecureStorage, () => mock.secureBehavior) }),
   };
   mock.webApp = webApp;
   (window as { Telegram?: unknown }).Telegram = { WebApp: webApp };

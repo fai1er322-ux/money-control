@@ -1,11 +1,22 @@
 import { useState } from "react";
 import type { AppState } from "../../storage/app-state";
 import { createExport, exportFileName, serializeExport } from "../../storage/export-import";
-import type { StorageMode } from "../../storage/repository";
+import type { FallbackReason, StorageMode } from "../../storage/repository";
 import { ImportForm } from "../components/ImportForm";
 import { StepLayout } from "../components/StepLayout";
 import { t } from "../i18n/ru";
+import type { SaveStatus } from "../state";
 import { useTelegramClient } from "../telegram";
+
+const timeFormat = new Intl.DateTimeFormat("ru-RU", { timeStyle: "medium" });
+
+function saveStatusText(lastSave: SaveStatus | null): string {
+  if (!lastSave) return t("data.lastSave.none");
+  return t("data.lastSave", {
+    time: timeFormat.format(new Date(lastSave.at)),
+    result: lastSave.error ? t(`storage.saveError.${lastSave.error}`) : t("data.lastSave.ok"),
+  });
+}
 
 /**
  * Saves the export through a download link. Telegram's downloadFile needs an HTTPS URL of a
@@ -26,12 +37,16 @@ function download(text: string, fileName: string) {
 export function DataSettings({
   state,
   storageMode,
+  fallbackReason = null,
+  lastSave = null,
   onImport,
   onDeleteAll,
   onBack,
 }: {
   state: AppState;
   storageMode: StorageMode;
+  fallbackReason?: FallbackReason | null;
+  lastSave?: SaveStatus | null;
   onImport: (state: AppState) => void;
   onDeleteAll: () => Promise<void>;
   onBack: () => void;
@@ -59,6 +74,8 @@ export function DataSettings({
         <p>{t("data.whereText", { mode: t(`storage.mode.${storageMode}`) })}</p>
         {/* Shown so the storage spike (T022) can record which mode each client gets. */}
         <p className="field-hint">{client ? t("data.client", client) : t("data.clientNone")}</p>
+        {fallbackReason && <p className="field-hint">{t("data.fallback")}</p>}
+        <p className="field-hint">{saveStatusText(lastSave)}</p>
       </section>
 
       {hasData && (

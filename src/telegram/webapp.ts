@@ -68,8 +68,40 @@ export class TelegramStorageError extends Error {
   }
 }
 
-function call<T>(op: string, run: (cb: StorageCallback<T>) => void): Promise<T | undefined> {
+/**
+ * A client that does not implement a storage method never calls back (telegram-web-app.js just
+ * posts the event), so every call has a deadline; a silent hang would lose saves without a trace.
+ */
+export const STORAGE_TIMEOUT_MS = 5000;
+/** restoreItem waits for the user's answer in a system dialog. */
+const RESTORE_TIMEOUT_MS = 60_000;
+
+function withDeadline<T>(
+  op: string,
+  ms: number,
+  run: (resolve: (v: T) => void, reject: (e: unknown) => void) => void,
+): Promise<T> {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new TelegramStorageError(op, "TIMEOUT")), ms);
+    run(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    );
+  });
+}
+
+function call<T>(
+  op: string,
+  ms: number,
+  run: (cb: StorageCallback<T>) => void,
+): Promise<T | undefined> {
+  return withDeadline(op, ms, (resolve, reject) => {
     run((error, value) => {
       if (error) reject(new TelegramStorageError(op, error));
       else resolve(value);
@@ -77,25 +109,25 @@ function call<T>(op: string, run: (cb: StorageCallback<T>) => void): Promise<T |
   });
 }
 
-function wrapKv(raw: RawKvStorage): KvStore {
+function wrapKv(raw: RawKvStorage, ms: number): KvStore {
   return {
     async get(key) {
-      return (await call<string | null>("get", (cb) => raw.getItem(key, cb))) ?? null;
+      return (await call<string | null>("get", ms, (cb) => raw.getItem(key, cb))) ?? null;
     },
     async set(key, value) {
-      await call<boolean>("set", (cb) => raw.setItem(key, value, cb));
+      await call<boolean>("set", ms, (cb) => raw.setItem(key, value, cb));
     },
     async remove(key) {
-      await call<boolean>("remove", (cb) => raw.removeItem(key, cb));
+      await call<boolean>("remove", ms, (cb) => raw.removeItem(key, cb));
     },
   };
 }
 
-function wrapSecure(raw: RawSecureStorage): SecureKvStore {
+function wrapSecure(raw: RawSecureStorage, ms: number): SecureKvStore {
   return {
-    ...wrapKv(raw),
+    ...wrapKv(raw, ms),
     getWithRestoreInfo(key) {
-      return new Promise((resolve, reject) => {
+      return withDeadline("get", ms, (resolve, reject) => {
         raw.getItem(key, (error, value, canRestore) => {
           if (error) reject(new TelegramStorageError("get", error));
           else resolve({ value: value ?? null, canRestore: canRestore === true });
@@ -103,9 +135,9 @@ function wrapSecure(raw: RawSecureStorage): SecureKvStore {
       });
     },
     restore(key) {
-      return new Promise((resolve) => {
+      return withDeadline<string | null>("restore", RESTORE_TIMEOUT_MS, (resolve) => {
         raw.restoreItem(key, (error, value) => resolve(error ? null : (value ?? null)));
-      });
+      }).catch(() => null);
     },
   };
 }
@@ -132,13 +164,16 @@ function applyTheme(raw: RawWebApp, root: HTMLElement): void {
   root.dataset.theme = raw.colorScheme;
 }
 
-export function wrapWebApp(raw: RawWebApp): TelegramWebApp {
+export function wrapWebApp(
+  raw: RawWebApp,
+  { storageTimeoutMs = STORAGE_TIMEOUT_MS }: { storageTimeoutMs?: number } = {},
+): TelegramWebApp {
   return {
     version: raw.version,
     platform: raw.platform,
     isVersionAtLeast: (v) => raw.isVersionAtLeast(v),
-    deviceStorage: raw.DeviceStorage ? wrapKv(raw.DeviceStorage) : null,
-    secureStorage: raw.SecureStorage ? wrapSecure(raw.SecureStorage) : null,
+    deviceStorage: raw.DeviceStorage ? wrapKv(raw.DeviceStorage, storageTimeoutMs) : null,
+    secureStorage: raw.SecureStorage ? wrapSecure(raw.SecureStorage, storageTimeoutMs) : null,
     ready: () => raw.ready(),
     expand: () => raw.expand(),
     bindTheme(root = document.documentElement) {

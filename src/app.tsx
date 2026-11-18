@@ -108,7 +108,7 @@ type View = "auto" | "catalog" | "recommendation" | "history" | "data";
  * recommendation, or the recommendation itself.
  */
 function AppShell() {
-  const { state, storageMode, saveError, update, wipe } = useAppState();
+  const { state, storageMode, fallbackReason, lastSave, saveError, update, wipe } = useAppState();
   const latest = state.recommendations.at(-1) ?? null;
   const latestProfile = state.profiles.at(-1) ?? null;
   const [view, setView] = useState<View>("auto");
@@ -170,6 +170,8 @@ function AppShell() {
       <DataSettings
         state={state}
         storageMode={storageMode}
+        fallbackReason={fallbackReason}
+        lastSave={lastSave}
         onImport={(imported) => {
           update(() => imported);
           setView("auto");

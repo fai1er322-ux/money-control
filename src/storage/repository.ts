@@ -9,12 +9,16 @@ import type { EncryptedBackend, LoadError, SaveError, StorageMode } from "./back
 import { decrypt, encrypt } from "./crypto";
 import { idbDelete, idbGet, idbPut } from "./idb";
 import { createIndexedDbBackend } from "./indexeddb-storage";
-import { createTelegramBackend } from "./telegram-storage";
+import { createTelegramBackend, META_NAME } from "./telegram-storage";
 
 export type { LoadError, SaveError, StorageMode } from "./backend";
 
+/** Why the app is not using Telegram storage although the client advertises it. */
+export type FallbackReason = "TELEGRAM_STORAGE_FAILED";
+
 export interface StateRepository {
   readonly mode: StorageMode;
+  readonly fallbackReason?: FallbackReason | null;
   /** null — nothing saved yet. */
   load(): Promise<Result<AppState | null, LoadError>>;
   save(state: AppState): Promise<Result<void, SaveError>>;
@@ -31,8 +35,39 @@ export function selectMode(webApp: TelegramWebApp | null): StorageMode {
     : "indexeddb";
 }
 
+const PROBE_KEY = "mc.probe";
+
+/**
+ * Some clients advertise Bot API 9.0+ but do not answer, or fail, storage calls. Before the
+ * first save, check that both storages really write and read back; existing data is trusted.
+ */
+export async function telegramStorageWorks(webApp: TelegramWebApp): Promise<boolean> {
+  const device = webApp.deviceStorage;
+  const secure = webApp.secureStorage;
+  if (!device || !secure) return false;
+  try {
+    if ((await device.get(META_NAME)) !== null) return true;
+    const token = String(Date.now());
+    await device.set(PROBE_KEY, token);
+    const deviceOk = (await device.get(PROBE_KEY)) === token;
+    await device.remove(PROBE_KEY);
+    await secure.set(PROBE_KEY, token);
+    const secureOk = (await secure.getWithRestoreInfo(PROBE_KEY)).value === token;
+    await secure.remove(PROBE_KEY);
+    return deviceOk && secureOk;
+  } catch {
+    return false;
+  }
+}
+
 export async function createRepository(webApp: TelegramWebApp | null): Promise<StateRepository> {
-  const mode = selectMode(webApp);
+  let mode = selectMode(webApp);
+  let fallbackReason: FallbackReason | null = null;
+  if (mode === "telegram" && webApp && !(await telegramStorageWorks(webApp))) {
+    mode = "indexeddb";
+    fallbackReason = "TELEGRAM_STORAGE_FAILED";
+  }
+  if (mode === "indexeddb") requestPersistence();
   const backend: EncryptedBackend =
     mode === "telegram" && webApp?.deviceStorage && webApp.secureStorage
       ? createTelegramBackend(webApp.deviceStorage, webApp.secureStorage)
@@ -52,6 +87,7 @@ export async function createRepository(webApp: TelegramWebApp | null): Promise<S
 
   return {
     mode,
+    fallbackReason,
 
     async load() {
       if (modeUnavailable) return err("MODE_UNAVAILABLE");
@@ -104,6 +140,15 @@ export async function createRepository(webApp: TelegramWebApp | null): Promise<S
       await idbDelete("meta", MODE_MARKER).catch(() => undefined);
     },
   };
+}
+
+/** Asks the browser not to evict IndexedDB under storage pressure (best effort, no prompt). */
+function requestPersistence(): void {
+  try {
+    void navigator.storage?.persist?.().catch(() => undefined);
+  } catch {
+    // Not available in this webview.
+  }
 }
 
 async function safeMarker(): Promise<string | undefined> {

@@ -1,10 +1,23 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import type { AppState } from "../storage/app-state";
-import type { SaveError, StateRepository, StorageMode } from "../storage/repository";
+import type {
+  FallbackReason,
+  SaveError,
+  StateRepository,
+  StorageMode,
+} from "../storage/repository";
+
+/** Outcome of the latest save, shown on the data screen for diagnostics. */
+export interface SaveStatus {
+  at: string;
+  error: SaveError | null;
+}
 
 interface AppStateContextValue {
   state: AppState;
   storageMode: StorageMode;
+  fallbackReason: FallbackReason | null;
+  lastSave: SaveStatus | null;
   /**
    * Applies a pure update and persists the result. Saves run one at a time; updates made while
    * a save is in flight are coalesced into a single save of the latest state.
@@ -28,6 +41,7 @@ export function AppStateProvider({
 }) {
   const [state, setState] = useState(initial);
   const [saveError, setSaveError] = useState<SaveError | null>(null);
+  const [lastSave, setLastSave] = useState<SaveStatus | null>(null);
   const latest = useRef(initial);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const version = useRef(0);
@@ -45,6 +59,7 @@ export function AppStateProvider({
         const res = await repository.save(latest.current);
         savedVersion.current = target;
         setSaveError(res.ok ? null : res.error);
+        setLastSave({ at: new Date().toISOString(), error: res.ok ? null : res.error });
       });
     },
     [repository],
@@ -64,7 +79,15 @@ export function AppStateProvider({
 
   return (
     <AppStateContext.Provider
-      value={{ state, storageMode: repository.mode, update, saveError, wipe }}
+      value={{
+        state,
+        storageMode: repository.mode,
+        fallbackReason: repository.fallbackReason ?? null,
+        lastSave,
+        update,
+        saveError,
+        wipe,
+      }}
     >
       {children}
     </AppStateContext.Provider>

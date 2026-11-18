@@ -2,7 +2,7 @@ import { IDBFactory } from "fake-indexeddb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { emptyAppState, type AppState } from "../../src/storage/app-state";
 import { createRepository } from "../../src/storage/repository";
-import { getWebApp } from "../../src/telegram/webapp";
+import { getWebApp, wrapWebApp } from "../../src/telegram/webapp";
 import { e1 } from "../fixtures/profiles";
 import { installTelegramMock, type TelegramMock } from "../mocks/telegram";
 
@@ -226,5 +226,56 @@ describe("schema validation", () => {
     // Bypass save()'s typing to store something with an unknown schema version.
     await r.save({ ...emptyAppState(), schemaVersion: 99 } as unknown as AppState);
     expect(await r.load()).toEqual({ ok: false, error: "SCHEMA_INVALID" });
+  });
+});
+
+describe("clients that advertise Telegram storage but do not deliver it", () => {
+  const fast = () => wrapWebApp(tg!.webApp, { storageTimeoutMs: 50 });
+
+  it.each(["hang", "error"] as const)(
+    "falls back to indexeddb when SecureStorage calls %s",
+    async (behavior) => {
+      tg = installTelegramMock();
+      tg.secureBehavior = behavior;
+      const repo = await createRepository(fast());
+      expect(repo.mode).toBe("indexeddb");
+      expect(repo.fallbackReason).toBe("TELEGRAM_STORAGE_FAILED");
+      const state = sampleState("fallback");
+      expect(await repo.save(state)).toEqual({ ok: true, value: undefined });
+      expect(await (await createRepository(fast())).load()).toEqual({ ok: true, value: state });
+      expect(tg.device.size).toBe(0);
+    },
+  );
+
+  it("falls back when DeviceStorage never answers", async () => {
+    tg = installTelegramMock();
+    tg.deviceBehavior = "hang";
+    const repo = await createRepository(fast());
+    expect(repo.mode).toBe("indexeddb");
+  });
+
+  it("leaves no probe keys behind when Telegram storage works", async () => {
+    tg = installTelegramMock();
+    const repo = await createRepository(fast());
+    expect(repo.mode).toBe("telegram");
+    expect(repo.fallbackReason).toBeNull();
+    expect(tg.device.size).toBe(0);
+    expect(tg.secure.size).toBe(0);
+  });
+
+  it("a save that stops answering mid-session fails with an error instead of hanging", async () => {
+    tg = installTelegramMock();
+    const repo = await createRepository(fast());
+    await repo.save(sampleState("a"));
+    tg.deviceBehavior = "hang";
+    expect(await repo.save(sampleState("b"))).toEqual({ ok: false, error: "STORAGE_UNAVAILABLE" });
+  });
+
+  it("keeps telegram mode for existing data without probing writes", async () => {
+    tg = installTelegramMock();
+    await (await createRepository(fast())).save(sampleState("a"));
+    tg.secureBehavior = "error"; // would fail a write probe; existing data must still open
+    const repo = await createRepository(fast());
+    expect(repo.mode).toBe("telegram");
   });
 });

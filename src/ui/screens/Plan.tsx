@@ -116,6 +116,8 @@ export function Plan({
   onAdjust,
   onChangeMethod,
   onShowRecommendation,
+  onEditAnswers,
+  onShowHistory,
 }: {
   plan: BudgetPlan;
   recommendedMethodId: MethodId | null;
@@ -123,6 +125,8 @@ export function Plan({
   onAdjust: (key: PlanPartKey, amount: Money) => Result<unknown, AdjustError>;
   onChangeMethod: () => void;
   onShowRecommendation: () => void;
+  onEditAnswers: () => void;
+  onShowHistory: () => void;
 }) {
   const period = `${t(`month.${plan.period.month}` as "month.1")} ${plan.period.year}`;
   const total = plan.parts.reduce((s, p) => s + p.amount.amount, 0);
@@ -138,6 +142,12 @@ export function Plan({
           </button>
           <button type="button" className="secondary" onClick={onShowRecommendation}>
             {t("plan.toRecommendation")}
+          </button>
+          <button type="button" className="secondary" onClick={onEditAnswers}>
+            {t("rec.editAnswers")}
+          </button>
+          <button type="button" className="secondary" onClick={onShowHistory}>
+            {t("history.open")}
           </button>
         </>
       }

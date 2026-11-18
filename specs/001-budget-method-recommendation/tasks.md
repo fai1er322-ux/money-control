@@ -145,15 +145,15 @@ contracts/scoring-rules-v1.md до копейки; Σ частей = доход
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T051 [P] [US3] Тесты `diffMetrics` в `tests/unit/diff-metrics.spec.ts`: E3 с `debtPayments = 0` → изменение `debtLoadBp` и `mandatoryShareBp`; без изменений → пустой список
-- [ ] T052 [P] [US3] E2E сценарии US3.1–US3.3 из spec.md в `tests/e2e/us3-history.spec.ts`
+- [X] T051 [P] [US3] Тесты `diffMetrics` в `tests/unit/diff-metrics.spec.ts`: E3 с `debtPayments = 0` → изменение `debtLoadBp` и `mandatoryShareBp`; без изменений → пустой список
+- [X] T052 [P] [US3] E2E сценарии US3.1–US3.3 из spec.md в `tests/e2e/us3-history.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T053 [P] [US3] `diffMetrics` в `src/domain/metrics.ts`
-- [ ] T054 [US3] Редактирование профиля в `src/ui/screens/Questionnaire.tsx` (режим правки с предзаполнением): сохраняется новая версия `FinancialProfile` с новым `id`, вызывается `recommend`
-- [ ] T055 [US3] Экран результата пересчёта в `src/ui/screens/Recommendation.tsx`: «метод остаётся подходящим» с обновлением сумм плана или новый метод с перечнем изменившихся факторов и предложением перейти
-- [ ] T056 [US3] Экран истории в `src/ui/screens/History.tsx`: рекомендации с датой, версией правил, методом и решением (FR-018)
+- [X] T053 [P] [US3] `diffMetrics` в `src/domain/metrics.ts`
+- [X] T054 [US3] Редактирование профиля в `src/ui/screens/Questionnaire.tsx` (режим правки с предзаполнением): сохраняется новая версия `FinancialProfile` с новым `id`, вызывается `recommend`
+- [X] T055 [US3] Экран результата пересчёта в `src/ui/screens/Recommendation.tsx`: «метод остаётся подходящим» с обновлением сумм плана или новый метод с перечнем изменившихся факторов и предложением перейти
+- [X] T056 [US3] Экран истории в `src/ui/screens/History.tsx`: рекомендации с датой, версией правил, методом и решением (FR-018)
 
 **Checkpoint**: все истории работают отдельно
 

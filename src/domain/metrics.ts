@@ -51,3 +51,39 @@ export function computeMetrics(profile: FinancialProfile): ProfileMetrics {
     isDeficit: obligations.amount >= baseIncome.amount,
   };
 }
+
+/** Metrics in display order; the change list keeps this order. */
+export const METRIC_KEYS = [
+  "baseIncome",
+  "stabilityBp",
+  "isIrregular",
+  "obligations",
+  "mandatoryShareBp",
+  "debtLoadBp",
+  "savingsMonthsX10",
+  "isDeficit",
+] as const satisfies readonly (keyof ProfileMetrics)[];
+
+export type MetricKey = (typeof METRIC_KEYS)[number];
+
+export interface MetricChange {
+  metric: MetricKey;
+  before: ProfileMetrics[MetricKey];
+  after: ProfileMetrics[MetricKey];
+}
+
+function sameValue(a: ProfileMetrics[MetricKey], b: ProfileMetrics[MetricKey]): boolean {
+  if (typeof a === "object" && typeof b === "object") {
+    return a.amount === b.amount && a.currency === b.currency;
+  }
+  return a === b;
+}
+
+/** FR-019: which indicators changed between two profile versions. */
+export function diffMetrics(prev: ProfileMetrics, next: ProfileMetrics): MetricChange[] {
+  return METRIC_KEYS.filter((k) => !sameValue(prev[k], next[k])).map((metric) => ({
+    metric,
+    before: prev[metric],
+    after: next[metric],
+  }));
+}

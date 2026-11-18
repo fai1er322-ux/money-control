@@ -3,6 +3,7 @@ import { decide, type DecisionChoice } from "./domain/history";
 import { adjustPart } from "./domain/methods/adjust";
 import { buildPlan } from "./domain/methods/build-plan";
 import type { MethodId } from "./domain/methods/catalog";
+import { computeMetrics, diffMetrics } from "./domain/metrics";
 import type { Period } from "./domain/plan";
 import { createProfile, profileToAnswers, type DraftAnswers } from "./domain/profile";
 import { recommend } from "./domain/scoring/engine";
@@ -11,10 +12,11 @@ import { emptyAppState, type AppState } from "./storage/app-state";
 import { createRepository, type LoadError, type StateRepository } from "./storage/repository";
 import type { TelegramWebApp } from "./telegram/webapp";
 import { t } from "./ui/i18n/ru";
+import { History } from "./ui/screens/History";
 import { MethodCatalog } from "./ui/screens/MethodCatalog";
 import { Plan } from "./ui/screens/Plan";
 import { Questionnaire } from "./ui/screens/Questionnaire";
-import { Recommendation } from "./ui/screens/Recommendation";
+import { Recommendation, type RecalculationSummary } from "./ui/screens/Recommendation";
 import { StorageError } from "./ui/screens/StorageError";
 import { Welcome } from "./ui/screens/Welcome";
 import { AppStateProvider, useAppState } from "./ui/state";
@@ -92,7 +94,7 @@ const currentPeriod = (): Period => {
   return { year: d.getFullYear(), month: d.getMonth() + 1 };
 };
 
-type View = "auto" | "catalog" | "recommendation";
+type View = "auto" | "catalog" | "recommendation" | "history";
 
 /**
  * Screen router. The screen is derived from the stored state, so a reload resumes where the
@@ -135,6 +137,25 @@ function AppShell() {
   const saveDraft = (answers: DraftAnswers, step: 1 | 2 | 3 | 4) =>
     update((s) => ({ ...s, draft: { ...answers, step, updatedAt: now() } }));
 
+  /** FR-005: edit the profile at any time, starting from the current answers. */
+  const editAnswers = () => {
+    setView("auto");
+    saveDraft(latestProfile ? profileToAnswers(latestProfile) : {}, 1);
+  };
+
+  const recalculation = ((): RecalculationSummary | null => {
+    const previous = state.recommendations.at(-2);
+    if (!latest || !previous) return null;
+    const before = state.profiles.find((p) => p.id === previous.profileId);
+    const after = state.profiles.find((p) => p.id === latest.profileId);
+    if (!before || !after) return null;
+    return {
+      previousMethodId: previous.recommendedMethodId,
+      metricChanges: diffMetrics(computeMetrics(before), computeMetrics(after)),
+      planUpdated: plan !== null && previous.recommendedMethodId === latest.recommendedMethodId,
+    };
+  })();
+
   let screen;
   if (!state.localStorageNoticeAcknowledgedAt) {
     screen = (
@@ -160,16 +181,43 @@ function AppShell() {
         onComplete={(input) => {
           const ctx = { now: now(), newId };
           const profile = createProfile(input, ctx);
-          const recommendation = recommend(profile, SCORING_RULES_V1, ctx);
+          let recommendation = recommend(profile, SCORING_RULES_V1, ctx);
+          // US3.2: the method stays suitable → keep the user's method and rebuild the plan.
+          let rebuilt: ReturnType<typeof buildPlan> | null = null;
+          const keepMethod =
+            plan &&
+            latest &&
+            recommendation.mode === "normal" &&
+            recommendation.recommendedMethodId === latest.recommendedMethodId;
+          if (keepMethod) {
+            recommendation = decide(
+              recommendation,
+              plan.methodId === recommendation.recommendedMethodId
+                ? { kind: "accept" }
+                : { kind: "override", methodId: plan.methodId },
+              ctx.now,
+            );
+            rebuilt = buildPlan(profile, plan.methodId, currentPeriod(), {
+              ...ctx,
+              recommendationId: recommendation.id,
+            });
+          }
+          const rec = recommendation;
           update((s) => ({
             ...s,
             profiles: [...s.profiles, profile],
-            recommendations: [...s.recommendations, recommendation],
+            recommendations: [...s.recommendations, rec],
+            plans: rebuilt ? [...s.plans, rebuilt] : s.plans,
+            activePlanId: rebuilt ? rebuilt.id : s.activePlanId,
             draft: null,
           }));
+          // After an edit, show what changed before going back to the plan.
+          setView(latest ? "recommendation" : "auto");
         }}
       />
     );
+  } else if (view === "history") {
+    screen = <History recommendations={state.recommendations} onBack={() => setView("auto")} />;
   } else if (view === "catalog" && latest.recommendedMethodId) {
     screen = (
       <MethodCatalog
@@ -187,6 +235,8 @@ function AppShell() {
         overridden={latest.decision === "overridden"}
         onChangeMethod={() => setView("catalog")}
         onShowRecommendation={() => setView("recommendation")}
+        onEditAnswers={editAnswers}
+        onShowHistory={() => setView("history")}
         onAdjust={(key, amount) => {
           const res = adjustPart(plan, key, amount, now());
           if (res.ok) {
@@ -203,10 +253,9 @@ function AppShell() {
     screen = (
       <Recommendation
         recommendation={latest}
-        onEditAnswers={() => {
-          setView("auto");
-          saveDraft(latestProfile ? profileToAnswers(latestProfile) : {}, 1);
-        }}
+        recalculation={recalculation}
+        onEditAnswers={editAnswers}
+        onShowHistory={() => setView("history")}
         onAccept={() => choose(latest, { kind: "accept" })}
         onChooseOther={() => setView("catalog")}
         onOpenPlan={plan ? () => setView("auto") : undefined}

@@ -118,6 +118,7 @@ export function Plan({
   onShowRecommendation,
   onEditAnswers,
   onShowHistory,
+  onShowData,
 }: {
   plan: BudgetPlan;
   recommendedMethodId: MethodId | null;
@@ -127,6 +128,7 @@ export function Plan({
   onShowRecommendation: () => void;
   onEditAnswers: () => void;
   onShowHistory: () => void;
+  onShowData: () => void;
 }) {
   const period = `${t(`month.${plan.period.month}` as "month.1")} ${plan.period.year}`;
   const total = plan.parts.reduce((s, p) => s + p.amount.amount, 0);
@@ -148,6 +150,9 @@ export function Plan({
           </button>
           <button type="button" className="secondary" onClick={onShowHistory}>
             {t("history.open")}
+          </button>
+          <button type="button" className="secondary" onClick={onShowData}>
+            {t("data.open")}
           </button>
         </>
       }

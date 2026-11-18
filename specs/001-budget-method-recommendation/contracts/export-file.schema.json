@@ -97,6 +97,7 @@
           }
         },
         "income": { "$ref": "#/$defs/Money" },
+        "obligations": { "$ref": "#/$defs/Money" },
         "parts": {
           "type": "array",
           "minItems": 1,

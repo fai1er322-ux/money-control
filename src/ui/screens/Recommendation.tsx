@@ -78,6 +78,7 @@ export function Recommendation({
   onChooseOther,
   onOpenPlan,
   onShowHistory,
+  onShowData,
 }: {
   recommendation: RecommendationModel;
   recalculation?: RecalculationSummary | null | undefined;
@@ -88,6 +89,7 @@ export function Recommendation({
   /** Present when a plan for this recommendation already exists. */
   onOpenPlan?: (() => void) | undefined;
   onShowHistory: () => void;
+  onShowData: () => void;
 }) {
   const secondary = (
     <>
@@ -96,6 +98,9 @@ export function Recommendation({
       </button>
       <button type="button" className="secondary" onClick={onShowHistory}>
         {t("history.open")}
+      </button>
+      <button type="button" className="secondary" onClick={onShowData}>
+        {t("data.open")}
       </button>
     </>
   );

@@ -84,3 +84,33 @@ describe("MoneyInput", () => {
     expect(input).toHaveAccessibleDescription(/Сумма не может быть отрицательной/);
   });
 });
+
+describe("StorageError recovery from an export (FR-021)", () => {
+  it("replaces unreadable data with a valid export after confirmation", async () => {
+    const { createExport, serializeExport } = await import("../../src/storage/export-import");
+    const user = userEvent.setup();
+    const repo = fakeRepo({ ok: false, error: "DECRYPT_FAILED" });
+    render(<App webApp={null} createRepo={async () => repo} />);
+
+    const textarea = await screen.findByLabelText("Или вставьте текст экспорта");
+    await user.click(textarea);
+    await user.paste("{broken");
+    await user.click(screen.getByRole("button", { name: "Загрузить данные" }));
+    expect(screen.getByText(/текст не читается как JSON/)).toBeInTheDocument();
+    expect(repo.wipe).not.toHaveBeenCalled();
+
+    const exported = {
+      ...emptyAppState(),
+      localStorageNoticeAcknowledgedAt: "2026-12-10T09:00:00.000Z",
+    };
+    await user.clear(textarea);
+    await user.paste(serializeExport(createExport(exported, "2026-12-10T09:00:00.000Z")));
+    await user.click(screen.getByRole("button", { name: "Загрузить данные" }));
+    expect(repo.wipe).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Подтвердить" }));
+
+    expect(repo.wipe).toHaveBeenCalledOnce();
+    expect(repo.save).toHaveBeenCalledWith(exported);
+    expect(await screen.findByText("Шаг 1 из 4")).toBeInTheDocument();
+  });
+});

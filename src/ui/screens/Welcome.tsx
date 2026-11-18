@@ -7,14 +7,24 @@ import { BottomActions } from "../telegram";
 export function Welcome({
   storageMode,
   onStart,
+  onImport,
 }: {
   storageMode: StorageMode;
   onStart: () => void;
+  /** Restore from an export file, e.g. on a new device (FR-021). */
+  onImport: () => void;
 }) {
   return (
     <StepLayout
       title={t("app.title")}
-      footer={<BottomActions primary={{ label: t("welcome.start"), onClick: onStart }} />}
+      footer={
+        <>
+          <BottomActions primary={{ label: t("welcome.start"), onClick: onStart }} />
+          <button type="button" className="secondary" onClick={onImport}>
+            {t("welcome.import")}
+          </button>
+        </>
+      }
     >
       <p>{t("welcome.lead")}</p>
       <section className="notice" aria-labelledby="storage-notice-title">

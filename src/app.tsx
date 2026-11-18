@@ -12,6 +12,7 @@ import { emptyAppState, type AppState } from "./storage/app-state";
 import { createRepository, type LoadError, type StateRepository } from "./storage/repository";
 import type { TelegramWebApp } from "./telegram/webapp";
 import { t } from "./ui/i18n/ru";
+import { DataSettings } from "./ui/screens/DataSettings";
 import { History } from "./ui/screens/History";
 import { MethodCatalog } from "./ui/screens/MethodCatalog";
 import { Plan } from "./ui/screens/Plan";
@@ -69,6 +70,11 @@ export function App({ webApp, createRepo = createRepository }: AppProps) {
     return (
       <StorageError
         error={boot.error}
+        onImport={async (imported) => {
+          await boot.repository.wipe();
+          await boot.repository.save(imported);
+          setBoot({ status: "ready", repository: boot.repository, state: imported });
+        }}
         onStartOver={async () => {
           await boot.repository.wipe();
           setBoot({ status: "ready", repository: boot.repository, state: emptyAppState() });
@@ -94,7 +100,7 @@ const currentPeriod = (): Period => {
   return { year: d.getFullYear(), month: d.getMonth() + 1 };
 };
 
-type View = "auto" | "catalog" | "recommendation" | "history";
+type View = "auto" | "catalog" | "recommendation" | "history" | "data";
 
 /**
  * Screen router. The screen is derived from the stored state, so a reload resumes where the
@@ -102,7 +108,7 @@ type View = "auto" | "catalog" | "recommendation" | "history";
  * recommendation, or the recommendation itself.
  */
 function AppShell() {
-  const { state, storageMode, saveError, update } = useAppState();
+  const { state, storageMode, saveError, update, wipe } = useAppState();
   const latest = state.recommendations.at(-1) ?? null;
   const latestProfile = state.profiles.at(-1) ?? null;
   const [view, setView] = useState<View>("auto");
@@ -156,11 +162,30 @@ function AppShell() {
     };
   })();
 
+  const showData = () => setView("data");
+
   let screen;
-  if (!state.localStorageNoticeAcknowledgedAt) {
+  if (view === "data") {
+    screen = (
+      <DataSettings
+        state={state}
+        storageMode={storageMode}
+        onImport={(imported) => {
+          update(() => imported);
+          setView("auto");
+        }}
+        onDeleteAll={async () => {
+          await wipe(emptyAppState());
+          setView("auto");
+        }}
+        onBack={() => setView("auto")}
+      />
+    );
+  } else if (!state.localStorageNoticeAcknowledgedAt) {
     screen = (
       <Welcome
         storageMode={storageMode}
+        onImport={showData}
         onStart={() =>
           update((s) => ({
             ...s,
@@ -237,6 +262,7 @@ function AppShell() {
         onShowRecommendation={() => setView("recommendation")}
         onEditAnswers={editAnswers}
         onShowHistory={() => setView("history")}
+        onShowData={showData}
         onAdjust={(key, amount) => {
           const res = adjustPart(plan, key, amount, now());
           if (res.ok) {
@@ -256,6 +282,7 @@ function AppShell() {
         recalculation={recalculation}
         onEditAnswers={editAnswers}
         onShowHistory={() => setView("history")}
+        onShowData={showData}
         onAccept={() => choose(latest, { kind: "accept" })}
         onChooseOther={() => setView("catalog")}
         onOpenPlan={plan ? () => setView("auto") : undefined}
